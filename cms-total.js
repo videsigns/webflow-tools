@@ -5,3 +5,5 @@ var number = $('[vd-cms-total="number"]');
 var totalLength = cmsArray.length;
 
 number.text(totalLength);
+
+console.log("yes");
