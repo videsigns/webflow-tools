@@ -1,3 +1,4 @@
+<script>
   var x = 0
   var steps = $('[data-form="step"]')
   var progressbarClone = $('[data-form="progress"]').children().clone()
@@ -46,6 +47,9 @@
     $(steps[x]).show()
     $(progressbar[x]).addClass('current')
     document.dispatchEvent(new Event('readystatechange'));
+
+    $($(steps[x]).find('textarea')[0]).focus()
+    $($(steps[x]).find('input')[0]).focus()
   }
 
   function validateEmail(email) {
@@ -59,7 +63,7 @@
 
   function validation(input){
     if($(steps[x]).find(':input').is('[type="checkbox"]')){
-      var checkCount = $(steps[x]).data('checkbox')
+      var checkCount = $(steps[x]).data('checkbox') ? $(steps[x]).data('checkbox') : 0
 
       if(checkCount === '*' || checkCount > $(steps[x]).find(':input[type="checkbox"]').length){
         $(steps[x]).find(':input[type="checkbox"]').each(function(){
@@ -71,6 +75,8 @@
         })
       }else{
         if($(steps[x]).find(':input[type="checkbox"]:checked').length === checkCount){
+          enableBtn()
+        }else if(checkCount === 0){
           enableBtn()
         }else{
           disableBtn()
@@ -160,3 +166,4 @@
   //initialize function
   disableBtn()
   updateStep()
+</script>
