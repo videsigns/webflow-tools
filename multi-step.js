@@ -1,4 +1,4 @@
-  var x = 0
+var x = 0
   var steps = $('[data-form="step"]')
   var progressbarClone = $('[data-form="progress"]').children().clone()
   var progressbar;
