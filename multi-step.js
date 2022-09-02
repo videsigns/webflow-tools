@@ -12,7 +12,7 @@
     fill = false
     //next button style 
     $('[data-form="next-btn"]').css({
-      "opacity" : "0.5",
+      "opacity" : "0.2",
       "pointer-events": "none"
     })
     //submit btn style
