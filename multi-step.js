@@ -1,4 +1,3 @@
-<script>
   var x = 0
   var steps = $('[data-form="step"]')
   var progressbarClone = $('[data-form="progress"]').children().clone()
@@ -166,4 +165,3 @@
   //initialize function
   disableBtn()
   updateStep()
-</script>
