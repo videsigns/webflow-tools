@@ -1,4 +1,4 @@
-  var x = 0
+ var x = 0
   var steps = $('[data-form="step"]')
   var progressbarClone = $('[data-form="progress"]').children().clone()
   var progressbar;
@@ -40,13 +40,26 @@
     $(steps[x]).find(':input').trigger('input')    
     $('[data-text="curStep"]').text(x+1)
 
+    //hide unhide steps
     steps.hide()
     window.Webflow && window.Webflow.require( 'ix2' ).init();
-
     $(steps[x]).show()
     $(progressbar[x]).addClass('current')
     document.dispatchEvent(new Event('readystatechange'));
 
+    //hide unhide button
+    if(x === 0){
+      $('[data-form="back-btn"]').hide()
+    }else if(x === steps.length - 1){
+      $('[data-form="next-btn"]').hide()
+      $('[data-form="submit-btn"]').show()
+    }else{
+      $('[data-form="next-btn"]').show()
+      $('[data-form="back-btn"]').show()
+      $('[data-form="submit-btn"]').hide()
+    }
+
+    //focus first input in every step
     $($(steps[x]).find('textarea')[0]).focus()
     $($(steps[x]).find('input')[0]).focus()
   }
@@ -73,7 +86,7 @@
           }
         })
       }else{
-        if($(steps[x]).find(':input[type="checkbox"]:checked').length === checkCount){
+        if($(steps[x]).find(':input[type="checkbox"]:checked').length >= checkCount){
           enableBtn()
         }else if(checkCount === 0){
           enableBtn()
@@ -117,15 +130,9 @@
       x++
       updateStep()
     }
-    if(x === steps.length - 1){
-      $('[data-form="next-btn"]').hide()
-      $('[data-form="submit-btn"]').show()
-    }
   }
 
   function backStep(){
-    $('[data-form="next-btn"]').show()
-    $('[data-form="submit-btn"]').hide()
     if(x > 0 ){
       $(progressbar[x]).removeClass('current')
       x--
