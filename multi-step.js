@@ -1,12 +1,17 @@
   var x = 0
+  var curStep = 0
   var steps = $('[data-form="step"]')
   var progressbarClone = $('[data-form="progress-indicator"]').clone()
   var progressbar;
   var fill = false
-
+	
+  $(progressbarClone).removeClass('current')
   $('[data-form="progress"]').children().remove()
-  $('[data-text="totalSteps"]').text($('[data-form="step"]').length)
+  $('[data-text="total-steps"]').text($('[data-form="step"]:not([data-card="true"])').length)
   $('[data-form="submit-btn"]').hide()
+  $('[data-text="current-step"]').text('0')
+  $(steps[x]).data('card') ? curStep = curStep + 0 : curStep = curStep + 1
+  steps.hide()
 
   function disableBtn(){
     fill = false
@@ -38,15 +43,14 @@
 
   function updateStep(){
     if($(steps[x]).data('card')){enableBtn()}
-
-
+    $('[data-form="custom-progress-indicator"]').removeClass('current')
+    $($('[data-form="custom-progress-indicator"]')[x]).addClass('current')
     $(steps[x]).find(':input').trigger('input')    
-    $('[data-text="curStep"]').text(x+1)
 
     //hide unhide steps
     steps.hide()
-    window.Webflow && window.Webflow.require( 'ix2' ).init();
-    $(steps[x]).show()
+    //window.Webflow && window.Webflow.require( 'ix2' ).init();
+    $(steps[x]).fadeIn('slow')
     $(progressbar[x]).addClass('current')
     document.dispatchEvent(new Event('readystatechange'));
 
@@ -133,6 +137,7 @@
       x++
       updateStep()
     }
+    $('[data-text="current-step"]').text($(steps[x]).data('card') ? curStep = curStep + 0 : curStep = curStep + 1)
   }
 
   function backStep(){
@@ -141,6 +146,7 @@
       x--
       updateStep()
     }
+    $('[data-text="current-step"]').text(curStep = curStep - 1)
   }
 
   $('body').on('keypress', function(e){
