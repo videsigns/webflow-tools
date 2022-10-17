@@ -1,4 +1,9 @@
-//17-10-22 fixed count issue
+// 17-10-22 16:46GMT
+
+//changelog
+// validation update
+// autofocus update
+//step text update
 
 var x = 0;
 var curStep = 0;
