@@ -1,8 +1,6 @@
-// 17-10-22 16:46GMT
+//21-10-22 16:46GMT
 //changelog
-// validation update
-// autofocus update
-//step text update
+// validation checkbox fixed
 
 var x = 0;
 var curStep = 0;
@@ -108,7 +106,7 @@ function validation(input) {
         .find(':input[type="checkbox"]')
         .each(function () {
           if ($(this).is(":checked")) {
-            if ($(steps[x]).find(":input[required]").length < 1) {
+            if ($(steps[x]).find(":input[required]").length < 0) {
               checkboxFilled = true;
               if (inputFilled && checkboxFilled && radioFilled) {
                 enableBtn();
@@ -124,7 +122,7 @@ function validation(input) {
         $(steps[x]).find(':input[type="checkbox"]:checked').length >= checkCount
       ) {
         console.log($(steps[x]).find(":input[required]").length);
-        if ($(steps[x]).find(":input[required]").length > 1) {
+        if ($(steps[x]).find(":input[required]").length > 0) {
           checkboxFilled = true;
           if (inputFilled && checkboxFilled && radioFilled) {
             enableBtn();
