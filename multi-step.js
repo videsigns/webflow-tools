@@ -1,6 +1,7 @@
 //Changelog 25-10-22 11:48am
 //updated multistep script to include new validation
 
+
 var x = 0;
 var curStep = 0;
 var steps = $('[data-form="step"]');
