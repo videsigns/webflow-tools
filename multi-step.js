@@ -1,8 +1,5 @@
-// 17-10-22 16:46GMT
-//changelog
-// validation update
-// autofocus update
-//step text update
+//Changelog 25-10-22 11:16am
+//updated multistep script to include new validation
 
 var x = 0;
 var curStep = 0;
@@ -28,7 +25,7 @@ function disableBtn() {
   fill = false;
   //next button style
   $('[data-form="next-btn"]').css({
-    opacity: "0.2",
+    opacity: "0.5",
     "pointer-events": "none",
   });
   //submit btn style
