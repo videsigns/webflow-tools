@@ -1,7 +1,6 @@
-// Changelog 27-10-22 10:45GMT+1
-// fixed multiple required fields issue
-// possible fix to wrong alert thrown
-
+//27-10-22 14:10
+// updated multiple form issue
+// updated multiple required issue
 
 var x = 0;
 var curStep = 0;
@@ -379,11 +378,11 @@ $(steps)
     }
   });
 
-$('[data-form="submit-btn"]').on("click", (e) => {
+$('[data-form="submit-btn"]').on("click", function (e) {
   e.preventDefault();
   $(this).prop("novalidate", true);
   $(steps).find(":input").prop("required", false);
-  $("form").submit();
+  $(this).parents("form").submit();
 });
 
 steps.each(function () {
