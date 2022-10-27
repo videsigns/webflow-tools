@@ -2,6 +2,7 @@
 // fixed multiple required fields issue
 // possible fix to wrong alert thrown
 
+
 var x = 0;
 var curStep = 0;
 var steps = $('[data-form="step"]');
