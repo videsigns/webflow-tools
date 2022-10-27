@@ -1,5 +1,6 @@
-//Changelog 25-10-22 11:48am
-//updated multistep script to include new validation
+//Changelog 27-10-22 10:30am
+// fixed multiple required fields issue
+// possible fix to wrong alert thrown
 
 var x = 0;
 var curStep = 0;
@@ -10,9 +11,11 @@ var fill = false;
 var inputFilled = true;
 var radioFilled = true;
 var checkboxFilled = true;
+var emailFilled = true;
 var answer = "";
 var selections = [];
 var selection = [];
+var empReqInput = [];
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -53,6 +56,8 @@ function enableBtn() {
 }
 
 function updateStep() {
+  empReqInput = [];
+
   $('[data-form="custom-progress-indicator"]').removeClass("current");
   $($('[data-form="custom-progress-indicator"]')[x]).addClass("current");
 
@@ -104,9 +109,9 @@ function validateEmail(email) {
   var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
   console.log("email", email);
   if (!emailReg.test(email)) {
-    disableBtn();
+    emailFilled = false;
   } else {
-    enableBtn();
+    emailFilled = true;
   }
 }
 
@@ -137,13 +142,9 @@ function validation(input) {
             if ($(this).is(":checked")) {
               if ($(steps[x]).find(":input[required]").length < 1) {
                 checkboxFilled = true;
-                if (inputFilled && checkboxFilled && radioFilled) {
-                  enableBtn();
-                }
               }
             } else {
               checkboxFilled = false;
-              disableBtn();
             }
           });
       } else {
@@ -152,11 +153,7 @@ function validation(input) {
           checkCount
         ) {
           checkboxFilled = true;
-          if (inputFilled && checkboxFilled && radioFilled) {
-            enableBtn();
-          }
         } else {
-          disableBtn();
           checkboxFilled = false;
         }
       }
@@ -165,27 +162,26 @@ function validation(input) {
     if ($(steps[x]).find(":input[required]").is('[type="radio"]')) {
       if ($(steps[x]).find(':input[type="radio"]').is(":checked")) {
         radioFilled = true;
-        if (inputFilled && checkboxFilled && radioFilled) {
-          enableBtn();
-        }
       } else {
         radioFilled = false;
-        disableBtn();
       }
     }
 
     $(steps[x])
       .find(':input[type="text"][required]')
-      .each(function () {
+      .each(function (i) {
         if ($(this).val() !== "") {
-          inputFilled = true;
-          if (inputFilled && checkboxFilled && radioFilled) {
-            enableBtn();
+          empReqInput = empReqInput.filter((y) => y.input !== i);
+        } else {
+          if (!empReqInput.find((y) => y.input === i)) {
+            empReqInput.push({ input: i });
           }
+        }
+
+        if (empReqInput.length === 0) {
+          inputFilled = true;
         } else {
           inputFilled = false;
-          console.log("input field false");
-          disableBtn();
         }
       });
 
@@ -193,12 +189,9 @@ function validation(input) {
       .find(':input[type="email"][required]')
       .each(function () {
         if ($(this).val() !== "") {
-          console.log("email");
           validateEmail($(this).val());
         } else {
-          inputFilled = false;
-          console.log("input field false");
-          disableBtn();
+          emailFilled = false;
         }
       });
   } else {
@@ -218,19 +211,13 @@ function validation(input) {
           .each(function () {
             if ($(this).is(":checked")) {
               if ($(steps[x]).find(":input[required]").length < 1) {
-                checkboxFilled = true;
-
                 answer = $(this).parents("[data-go-to]").attr("data-go-to");
                 selections = selections.filter((y) => y.step !== x);
                 selections.push({ step: x, selected: answer });
-
-                if (inputFilled && checkboxFilled && radioFilled) {
-                  enableBtn();
-                }
+                checkboxFilled = true;
               }
             } else {
               checkboxFilled = false;
-              disableBtn();
             }
           });
       } else {
@@ -241,8 +228,6 @@ function validation(input) {
         ) {
           console.log($(steps[x]).find(":input[required]").length);
           if ($(steps[x]).find(":input[required]").length < 1) {
-            checkboxFilled = true;
-
             answer = $(steps[x])
               .find("[data-answer]:visible")
               .find(':input[type="checkbox"]:checked')
@@ -250,15 +235,9 @@ function validation(input) {
               .attr("data-go-to");
             selections = selections.filter((y) => y.step !== x);
             selections.push({ step: x, selected: answer });
-
-            console.log(answer, x);
-
-            if (inputFilled && checkboxFilled && radioFilled) {
-              enableBtn();
-            }
+            checkboxFilled = true;
           }
         } else {
-          disableBtn();
           checkboxFilled = false;
         }
       }
@@ -272,12 +251,8 @@ function validation(input) {
     ) {
       if ($(steps[x]).find(':input[type="radio"]').is(":checked")) {
         radioFilled = true;
-        if (inputFilled && checkboxFilled && radioFilled) {
-          enableBtn();
-        }
       } else {
         radioFilled = false;
-        disableBtn();
       }
     }
 
@@ -286,20 +261,21 @@ function validation(input) {
       .find(':input[type="text"][required]')
       .each(function (y) {
         if ($(this).val() !== "") {
-          inputFilled = true;
-
           answer = $(this).attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
           console.log(answer, x);
-
-          if (inputFilled && checkboxFilled && radioFilled) {
-            enableBtn();
+          empReqInput = empReqInput.filter((y) => y.input !== i);
+        } else {
+          if (!empReqInput.find((y) => y.input === i)) {
+            empReqInput.push({ input: i });
           }
+        }
+
+        if (empReqInput.length === 0) {
+          inputFilled = true;
         } else {
           inputFilled = false;
-          console.log("input field false");
-          disableBtn();
         }
       });
 
@@ -314,11 +290,15 @@ function validation(input) {
 
           validateEmail($(this).val());
         } else {
-          inputFilled = false;
-          console.log("input field false");
-          disableBtn();
+          emailFilled = false;
         }
       });
+  }
+
+  if (inputFilled && checkboxFilled && radioFilled && emailFilled) {
+    enableBtn();
+  } else {
+    disableBtn();
   }
 }
 
