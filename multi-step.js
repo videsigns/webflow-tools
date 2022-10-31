@@ -1,6 +1,7 @@
-//27-10-22 14:10
-// updated multiple form issue
-// updated multiple required issue
+//31-10-22 Happy Halloween
+//Spooky Changelog
+//Fixed Radio required bug
+//Enabled Webflow IX with data-reinit=“true"
 
 var x = 0;
 var curStep = 0;
@@ -16,6 +17,12 @@ var answer = "";
 var selections = [];
 var selection = [];
 var empReqInput = [];
+var reinitIX = $("[data-reinit]").data("reinit");
+var textareaLength = 0;
+var textInputLength = 0;
+var emailInputLength = 0;
+var checkboxInputLength = 0;
+var filledInput = [];
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -55,8 +62,46 @@ function enableBtn() {
   });
 }
 
+function saveFilledInput() {
+  $('form[data-form="multistep"] :input').each(function () {
+    if (
+      $(this).attr("type") === "checkbox" ||
+      $(this).attr("type") === "radio"
+    ) {
+      if ($(this).prop("checked")) {
+        filledInput.push({
+          inputName: $(this).attr("name"),
+          value: $(this).val(),
+        });
+      }
+    } else {
+      filledInput.some((e) => {
+        if (e.inputName !== $(this).attr("name")) {
+          filledInput.push({
+            inputName: $(this).attr("name"),
+            value: $(this).val(),
+          });
+        } else {
+          filledInput = filledInput.filter(
+            (e) => x.inputName !== $(this).attr("name")
+          );
+
+          filledInput.push({
+            inputName: $(this).attr("name"),
+            value: $(this).val(),
+          });
+        }
+      });
+    }
+  });
+}
+
 function updateStep() {
   empReqInput = [];
+  textareaLength = $("textarea").length;
+  textInputLength = $(steps[x]).find('input[type="text"]').length;
+  emailInputLength = $(steps[x]).find('input[type="email"]').length;
+  checkboxInputLength = $(steps[x]).find('input[type="checkbox"]').length;
 
   $('[data-form="custom-progress-indicator"]').removeClass("current");
   $($('[data-form="custom-progress-indicator"]')[x]).addClass("current");
@@ -67,10 +112,18 @@ function updateStep() {
 
   //hide unhide steps
   steps.hide();
-  //window.Webflow && window.Webflow.require( 'ix2' ).init();
-  $(steps[x]).fadeIn("slow");
+  if (reinitIX === true) {
+    window.Webflow.destroy();
+  }
+
   $(progressbar[x]).addClass("current");
-  document.dispatchEvent(new Event("readystatechange"));
+  if (reinitIX === true) {
+    window.Webflow && window.Webflow.require("ix2").init();
+    document.dispatchEvent(new Event("readystatechange"));
+    $(steps[x]).show();
+  } else {
+    $(steps[x]).fadeIn("slow");
+  }
 
   if (selection.length > 0) {
     $(steps[x]).find(`[data-answer="${selection[0].selected}"]`).show();
@@ -103,6 +156,8 @@ function updateStep() {
   selections = selections.filter((y) => y.step !== x);
   $(steps[x]).find(":input").trigger("input");
   validation();
+
+  saveFilledInput();
 }
 
 function validateEmail(email) {
@@ -371,9 +426,16 @@ $(steps)
       selections.push({ step: x, selected: answer });
 
       if ($(steps[x]).find("[data-radio-skip]").data("radio-skip") === true) {
-        setTimeout(function () {
-          nextStep();
-        }, $(steps[x]).find("[data-radio-delay]").data("radio-delay"));
+        if (
+          textareaLength === 0 &&
+          textInputLength === 0 &&
+          emailInputLength === 0 &&
+          checkboxInputLength === 0
+        ) {
+          setTimeout(function () {
+            nextStep();
+          }, $(steps[x]).find("[data-radio-delay]").data("radio-delay"));
+        }
       }
     }
   });
