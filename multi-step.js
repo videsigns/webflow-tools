@@ -1,5 +1,4 @@
-//1-11-22
-// form memory update
+//3-11-22 update
 
 var x = 0;
 var curStep = 0;
@@ -391,8 +390,9 @@ function validation(input) {
 }
 
 function nextStep() {
+  x++;
   if (x <= steps.length - 1) {
-    x++;
+    console.log(x, steps.length - 1);
     updateStep();
     saveFilledInput();
 
@@ -427,9 +427,12 @@ $("body").on("keypress", function (e) {
 
 $("body").keydown(function (event) {
   if ((event.metaKey || event.ctrlKey) && event.keyCode == 13) {
-    if (x === steps.length - 1) {
+    console.log(x, steps.length - 1);
+    if (x >= steps.length - 1) {
+      console.log("submitting form");
       $("form").submit();
     } else {
+      console.log("not submitting");
       event.preventDefault();
     }
   }
@@ -476,8 +479,12 @@ $(steps)
 
 $('[data-form="submit-btn"]').on("click", function (e) {
   e.preventDefault();
-  $(this).prop("novalidate", true);
-  $(steps).find(":input").prop("required", false);
+
+  if ($("[data-logic-extra]").data("logic-extra")) {
+    $(this).prop("novalidate", true);
+    $(steps).find(":input").prop("required", false);
+  }
+
   localStorage.removeItem("filledInput");
   $(this).parents("form").submit();
 });
