@@ -1,18 +1,6 @@
-//11-11-22
-
-/* 
-
-Gerenal bug fixes
-
-FORM MEMORY UPDATE
-data-memory=true
-
-
-Enabled FormlyQuiz (Quiz Mode)
-data-quiz=true
-
-Enables FormlyLogic
-*/
+//14-11-22
+//Logic fixes
+//disappearing button fixes
 
 var x = 0;
 var curStep = 0;
@@ -193,6 +181,7 @@ function updateStep() {
   //hide unhide button
   if (x === 0) {
     $('[data-form="back-btn"]').hide();
+    $('[data-form="next-btn"]').show();
   } else if (
     x === steps.length - 1 ||
     $(steps[x]).find('[data-form="submit"]:visible').length > 0
@@ -422,7 +411,7 @@ function validation(input) {
       .find(':input[type="text"][required]')
       .each(function (i) {
         if ($(this).val() !== "") {
-          answer = $(this).attr("data-go-to");
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
           console.log(answer, x);
@@ -443,10 +432,54 @@ function validation(input) {
 
     $(steps[x])
       .find("[data-answer]:visible")
+      .find("select[required]")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          empReqSelect = empReqSelect.filter((y) => y.input !== i);
+        } else {
+          if (!empReqSelect.find((y) => y.input === i)) {
+            empReqSelect.push({ input: i });
+          }
+        }
+
+        if (empReqSelect.length === 0) {
+          selectFilled = true;
+        } else {
+          selectFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find("textarea[required]")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          answer = $$(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          empReqTextarea = empReqTextarea.filter((y) => y.input !== i);
+        } else {
+          if (!empReqTextarea.find((y) => y.input === i)) {
+            empReqTextarea.push({ input: i });
+          }
+        }
+
+        if (empReqTextarea.length === 0) {
+          textareaFilled = true;
+        } else {
+          textareaFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
       .find(':input[type="email"][required]')
       .each(function (m) {
         if ($(this).val() !== "") {
-          answer = $(this).attr("data-go-to");
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
 
@@ -513,8 +546,7 @@ $("body").keydown(function (event) {
   if ((event.metaKey || event.ctrlKey) && event.keyCode == 13) {
     console.log(x, steps.length - 1);
     if (x >= steps.length - 1) {
-      console.log("submitting form");
-      $("form").submit();
+      $('[data-form="submit-btn"]').click();
     } else {
       console.log("not submitting");
       event.preventDefault();
