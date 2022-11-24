@@ -7,7 +7,7 @@ var link = document.createElement("link");
 link.type = "text/css";
 link.rel = "stylesheet";
 link.href =
-  "https://cdn.jsdelivr.net/gh/videsigns/webflow-tools@alpha/countrycode.css";
+  "https://cdn.jsdelivr.net/gh/videsigns/webflow-tools@main/countrycode.css";
 
 document.getElementsByTagName("head")[0].appendChild(link);
 
