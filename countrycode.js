@@ -6,7 +6,8 @@ var link = document.createElement("link");
 
 link.type = "text/css";
 link.rel = "stylesheet";
-link.href = "https://dropdown.nadaafarook.repl.co/style.css";
+link.href =
+  "https://cdn.jsdelivr.net/gh/videsigns/webflow-tools@alpha/countrycode.css";
 
 document.getElementsByTagName("head")[0].appendChild(link);
 
