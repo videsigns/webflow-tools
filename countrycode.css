@@ -1,0 +1,35 @@
+.ts-control,
+.ts-wrapper.single.input-active .ts-control,
+.full .ts-control {
+  background: transparent;
+  color: inherit;
+  border: 0px;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  padding-inline: 0px;
+}
+
+.ts-control {
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+}
+.ts-control ::placeholder {
+  opacity: 1;
+  color: inherit;
+}
+
+[data-dropdown],
+.ts-control input {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  color: inherit;
+  background-image: url(https://freepikpsd.com/file/2020/01/Down-Arrow-PNG-HD.png);
+  background-position: right 16px bottom 50%;
+  background-size: 12px;
+  background-repeat: no-repeat;
+}
+
+select:invalid {
+  color: grey 80%;
+}
