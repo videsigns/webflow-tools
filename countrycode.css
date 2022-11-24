@@ -7,13 +7,11 @@
   -moz-appearance: none;
   -webkit-appearance: none;
   padding-inline: 0px;
-}
-
-.ts-control {
   color: inherit;
   font-size: inherit;
   font-family: inherit;
 }
+
 .ts-control ::placeholder {
   opacity: 1;
   color: inherit;
