@@ -1,27 +1,14 @@
-//24-11-22 Nada Final
+//24-11-22 17:15GMT+0
 
 // will get either country / countrycode
 const dropdownList = document.querySelectorAll(`[data-dropdown]`);
 var link = document.createElement("link");
 
-link.href =
-  "https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css";
-
 link.type = "text/css";
 link.rel = "stylesheet";
-console.log();
-document.getElementsByTagName("head")[0].appendChild(link);
-
 link.href = "https://dropdown.nadaafarook.repl.co/style.css";
 
 document.getElementsByTagName("head")[0].appendChild(link);
-
-const script = document.createElement("script");
-
-script.src =
-  "https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js";
-
-document.getElementsByTagName("head")[0].appendChild(script);
 
 function getCountryFlag(cc) {
   if (cc.length !== 2) return cc;
