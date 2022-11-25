@@ -1,15 +1,27 @@
-//24-11-22 17:15GMT+0
-
+// 25-11-22 11:00 GMT+0
 // will get either country / countrycode
 const dropdownList = document.querySelectorAll(`[data-dropdown]`);
-var link = document.createElement("link");
 
+var link = document.createElement("link");
+link.href =
+  "https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css";
 link.type = "text/css";
 link.rel = "stylesheet";
-link.href =
-  "https://cdn.jsdelivr.net/gh/videsigns/webflow-tools@main/countrycode.css";
-
 document.getElementsByTagName("head")[0].appendChild(link);
+
+var link2 = document.createElement("link");
+link2.href =
+  "https://cdn.jsdelivr.net/gh/videsigns/webflow-tools@latest/countrycode.css";
+link2.type = "text/css";
+link2.rel = "stylesheet";
+document.getElementsByTagName("head")[0].appendChild(link2);
+
+const script = document.createElement("script");
+
+script.src =
+  "https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js";
+
+document.getElementsByTagName("body")[0].appendChild(script);
 
 function getCountryFlag(cc) {
   if (cc.length !== 2) return cc;
@@ -2036,6 +2048,8 @@ async function render() {
       const arrowImg = dropdown.getAttribute("data-arrow");
       const css = {
         "background-image": `url(${arrowImg})`,
+        "-moz-appearance": "none",
+        "-webkit-appearance": "none",
       };
 
       Object.assign(dropdown.style, css);
