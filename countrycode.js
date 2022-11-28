@@ -1,4 +1,5 @@
-// 25-11-22 11:00 GMT+0
+//28-11-22 14:38GMT+0
+
 // will get either country / countrycode
 const dropdownList = document.querySelectorAll(`[data-dropdown]`);
 
@@ -1939,7 +1940,7 @@ async function render() {
       dial_code: "+971",
     },
     {
-      name: "United Kingdom of Great Britain and Northern Ireland",
+      name: "United Kingdom",
       region: "Europe",
       subregion: "Northern Europe",
       alpha2Code: "GB",
@@ -2090,27 +2091,35 @@ async function render() {
 
     dropdown.attributes["data-dropdown-sorted"]
       ? continents.forEach((continent) => {
+          let timestamp = new Date().getTime();
           const optGroup = document.createElement("optgroup");
           optGroup.label = continent[0].region;
+          console.log(dropdown.getAttribute("data-dropdown"));
           continent.forEach((item) => {
             const clonedSelect = dropdownChild.cloneNode();
-
+            clonedSelect.id = `${item.name} ${timestamp}`;
             clonedSelect.innerText = getInnerText(item);
-            clonedSelect.value =
-              dropdown.getAttribute("data-dropdown") == country
-                ? item.country
-                : item.dial_code;
+            if (dropdown.getAttribute("data-dropdown") == "country") {
+              clonedSelect.value = item.name;
+            } else {
+              clonedSelect.value = item.dial_code;
+            }
+
             optGroup.append(clonedSelect);
             dropdown.append(optGroup);
           });
         })
       : country.forEach((item) => {
           const clonedSelect = dropdownChild.cloneNode();
+          let timestamp = new Date().getTime();
           clonedSelect.innerText = getInnerText(item);
-          clonedSelect.value =
-            dropdown.getAttribute("data-dropdown") == country
-              ? item.country
-              : item.dial_code;
+          clonedSelect.id = `${item.name} ${timestamp}`;
+          if (dropdown.getAttribute("data-dropdown") == "country") {
+            clonedSelect.value = item.name;
+          } else {
+            clonedSelect.value = item.dial_code;
+          }
+          //clonedSelect.value = dropdown.getAttribute('data-dropdown') == country ? item.country : item.dial_code
 
           dropdown.append(clonedSelect);
         });
@@ -2125,10 +2134,6 @@ async function render() {
     dropdown.attributes["data-dropdown-search"] &&
       new TomSelect(dropdown, {
         create: false,
-        sortField: {
-          field: "text",
-          direction: "asc",
-        },
       });
     dropdownChild.disabled = "true";
     dropdownChild.selected = "true";
