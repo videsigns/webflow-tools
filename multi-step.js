@@ -1,7 +1,5 @@
-//22-11-22 12:15pm
-//button fixes
-//logic error fixes
-//double enter submit fix
+//28-11-22 12:25GMT+0
+//Logic fixes - optional field bug fix
 
 var x = 0;
 var curStep = 0;
@@ -360,6 +358,7 @@ function validation(input) {
       selections.push({ step: x, selected: answer });
     }
 
+    /////////////////////////////////////////////////////////////////////////
     if (
       $(steps[x])
         .find("[data-answer]:visible")
@@ -407,6 +406,7 @@ function validation(input) {
       }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
     if (
       $(steps[x])
         .find("[data-answer]:visible")
@@ -420,15 +420,12 @@ function validation(input) {
       }
     }
 
+    ////////////////////////////text input validation/////////////////////////////////////
     $(steps[x])
       .find("[data-answer]:visible")
       .find(':input[type="text"][required]')
       .each(function (i) {
         if ($(this).val() !== "") {
-          answer = $(this).parents("[data-go-to]").attr("data-go-to");
-          selections = selections.filter((y) => y.step !== x);
-          selections.push({ step: x, selected: answer });
-          console.log(answer, x);
           empReqInput = empReqInput.filter((y) => y.input !== i);
         } else {
           if (!empReqInput.find((y) => y.input === i)) {
@@ -441,17 +438,25 @@ function validation(input) {
         } else {
           inputFilled = false;
         }
-        // console.log(empReqInput)
       });
 
     $(steps[x])
       .find("[data-answer]:visible")
-      .find("select[required]")
+      .find(':input[type="text"]')
       .each(function (i) {
         if ($(this).val() !== "") {
           answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
+        }
+      });
+
+    ////////////////////////////select input validation///////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find("select[required]")
+      .each(function (i) {
+        if ($(this).val() !== "") {
           empReqSelect = empReqSelect.filter((y) => y.input !== i);
         } else {
           if (!empReqSelect.find((y) => y.input === i)) {
@@ -468,10 +473,22 @@ function validation(input) {
 
     $(steps[x])
       .find("[data-answer]:visible")
+      .find("select")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+        }
+      });
+
+    ////////////////////////////textarea validation////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
       .find("textarea[required]")
       .each(function (i) {
         if ($(this).val() !== "") {
-          answer = $$(this).parents("[data-go-to]").attr("data-go-to");
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
           empReqTextarea = empReqTextarea.filter((y) => y.input !== i);
@@ -490,6 +507,18 @@ function validation(input) {
 
     $(steps[x])
       .find("[data-answer]:visible")
+      .find("textarea")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+        }
+      });
+
+    ///////////////////////////email validation//////////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
       .find(':input[type="email"][required]')
       .each(function (m) {
         if ($(this).val() !== "") {
@@ -500,6 +529,17 @@ function validation(input) {
           validateEmail($(this).val());
         } else {
           emailFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="email"]')
+      .each(function (m) {
+        if ($(this).val() !== "") {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
         }
       });
   }
@@ -593,11 +633,19 @@ $(steps)
       //conditional logic
       answer = $(steps[x])
         .find("input[type='radio']:checked")
-        .attr("data-go-to");
+        .attr("data-go-to")
+        ? $(steps[x]).find("input[type='radio']:checked").attr("data-go-to")
+        : $(steps[x])
+            .find("input[type='radio']:checked")
+            .parents("[data-go-to]")
+            .data("go-to");
       selections = selections.filter((y) => y.step !== x);
       selections.push({ step: x, selected: answer });
 
-      if ($(steps[x]).find("[data-radio-skip]").data("radio-skip") === true) {
+      if (
+        $(steps[x]).find("[data-radio-skip]:visible").data("radio-skip") ===
+        true
+      ) {
         console.log("skip");
         if (
           textareaLength === 0 &&
