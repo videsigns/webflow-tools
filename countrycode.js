@@ -11,7 +11,8 @@ link.rel = "stylesheet";
 document.getElementsByTagName("head")[0].appendChild(link);
 
 var link2 = document.createElement("link");
-link2.href = "https://dropdown.nadaafarook.repl.co/style.css";
+link2.href =
+  "https://cdn.jsdelivr.net/gh/videsigns/webflow-tools@latest/countrycode.css";
 link2.type = "text/css";
 link2.rel = "stylesheet";
 document.getElementsByTagName("head")[0].appendChild(link2);
