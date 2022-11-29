@@ -1,4 +1,4 @@
-//29-11-22 10:36GMT+0
+//29-11-22 21:40GMT+0
 
 var x = 0;
 var curStep = 0;
@@ -223,7 +223,7 @@ function validateEmail(email) {
   }
 }
 
-function validation(input) {
+function validation() {
   //conditional logic
 
   if ($(steps[x]).data("card")) {
@@ -443,12 +443,10 @@ function validation(input) {
       .find("[data-answer]:visible")
       .find(':input[type="text"]')
       .each(function (i) {
-        if ($(this).val() !== "") {
-          answer = $(this).parents("[data-go-to]").attr("data-go-to");
-          if (answer) {
-            selections = selections.filter((y) => y.step !== x);
-            selections.push({ step: x, selected: answer });
-          }
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        if (answer) {
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
         }
       });
 
@@ -476,12 +474,10 @@ function validation(input) {
       .find("[data-answer]:visible")
       .find("select")
       .each(function (i) {
-        if ($(this).val() !== "") {
-          answer = $(this).parents("[data-go-to]").attr("data-go-to");
-          if (answer) {
-            selections = selections.filter((y) => y.step !== x);
-            selections.push({ step: x, selected: answer });
-          }
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        if (answer) {
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
         }
       });
 
@@ -512,12 +508,10 @@ function validation(input) {
       .find("[data-answer]:visible")
       .find("textarea")
       .each(function (i) {
-        if ($(this).val() !== "") {
-          answer = $(this).parents("[data-go-to]").attr("data-go-to");
-          if (answer) {
-            selections = selections.filter((y) => y.step !== x);
-            selections.push({ step: x, selected: answer });
-          }
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        if (answer) {
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
         }
       });
 
@@ -543,11 +537,9 @@ function validation(input) {
       .find("[data-answer]:visible")
       .find(':input[type="email"]')
       .each(function (m) {
-        if ($(this).val() !== "") {
-          answer = $(this).parents("[data-go-to]").attr("data-go-to");
-          selections = selections.filter((y) => y.step !== x);
-          selections.push({ step: x, selected: answer });
-        }
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        selections = selections.filter((y) => y.step !== x);
+        selections.push({ step: x, selected: answer });
       });
   }
   //console.log('input',inputFilled,'checkbox',checkboxFilled,'radio',radioFilled,'email',emailFilled)
@@ -619,18 +611,20 @@ $("body").keydown(function (event) {
 });
 
 $('[data-form="next-btn"]').on("click", function () {
+  validation();
   nextStep();
   $(steps[x]).find(":input").trigger("input");
 });
 
 $('[data-form="back-btn"]').on("click", function () {
+  validation();
   backStep();
 });
 
 $(steps)
   .find(":input")
   .on("input", function (input) {
-    validation(input);
+    validation();
   });
 
 $(steps)
