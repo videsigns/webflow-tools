@@ -1,4 +1,4 @@
-//29-11-22 21:40GMT+0
+//7-12-22 16:04GMT+0
 
 var x = 0;
 var curStep = 0;
@@ -28,6 +28,7 @@ var filledInput = [];
 var savedFilledInput = JSON.parse(localStorage.getItem("filledInput"));
 var memory = $("[data-memory]").data("memory");
 var quiz = $("[data-quiz]").data("quiz");
+const url = new URL(window.location.href);
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -70,29 +71,17 @@ if (quiz) {
 function disableBtn() {
   fill = false;
   //next button style
-  $('[data-form="next-btn"]').css({
-    opacity: "0.2",
-    "pointer-events": "none",
-  });
+  $('[data-form="next-btn"]').addClass("disabled");
   //submit btn style
-  $('[data-form="submit-btn"]').css({
-    opacity: "0.5",
-    "pointer-events": "none",
-  });
+  $('[data-form="submit-btn"]').addClass("disabled");
 }
 
 function enableBtn() {
   fill = true;
   //next button style
-  $('[data-form="next-btn"]').css({
-    opacity: "1",
-    "pointer-events": "auto",
-  });
+  $('[data-form="next-btn"]').removeClass("disabled");
   //submit btn style
-  $('[data-form="submit-btn"]').css({
-    opacity: "1",
-    "pointer-events": "auto",
-  });
+  $('[data-form="submit-btn"]').removeClass("disabled");
 }
 
 function saveFilledInput() {
@@ -109,15 +98,19 @@ function saveFilledInput() {
               (e) => e.inputName !== $(this).attr("name")
             );
 
-            filledInput.push({
-              inputName: $(this).attr("name"),
-              value: $(this).val(),
-            });
+            if ($(this).val() !== "") {
+              filledInput.push({
+                inputName: $(this).attr("name"),
+                value: $(this).val(),
+              });
+            }
           } else {
-            filledInput.push({
-              inputName: $(this).attr("name"),
-              value: $(this).val(),
-            });
+            if ($(this).val() !== "") {
+              filledInput.push({
+                inputName: $(this).attr("name"),
+                value: $(this).val(),
+              });
+            }
           }
         }
       } else {
@@ -126,18 +119,31 @@ function saveFilledInput() {
             (e) => e.inputName !== $(this).attr("name")
           );
 
-          filledInput.push({
-            inputName: $(this).attr("name"),
-            value: $(this).val(),
-          });
+          if ($(this).val() !== "") {
+            filledInput.push({
+              inputName: $(this).attr("name"),
+              value: $(this).val(),
+            });
+          }
         } else {
-          filledInput.push({
-            inputName: $(this).attr("name"),
-            value: $(this).val(),
-          });
+          if ($(this).val() !== "") {
+            filledInput.push({
+              inputName: $(this).attr("name"),
+              value: $(this).val(),
+            });
+          }
         }
       }
     });
+  console.log(filledInput);
+  if (filledInput) {
+    filledInput.forEach((x) => {
+      console.log(x);
+      url.searchParams.delete(x.inputName);
+      url.searchParams.set(x.inputName, x.value);
+      window.history.replaceState(null, null, url); // or pushState
+    });
+  }
 
   localStorage.removeItem("filledInput");
   localStorage.setItem("filledInput", JSON.stringify(filledInput));
@@ -160,6 +166,7 @@ function updateStep() {
 
   //conditional logic
   selection = selections.filter((y) => y.step === x - 1);
+  console.log(selection, "updating steps");
   $("[data-answer]").hide();
 
   //hide unhide steps
@@ -241,6 +248,461 @@ function validation() {
   ).length;
 
   if (textInputLength > 0 || selectInputLength > 0 || textareaLength > 0) {
+    disableBtn();
+  } else {
+    enableBtn();
+  }
+
+  var checkCount = $(steps[x]).data("checkbox")
+    ? $(steps[x]).data("checkbox")
+    : 0;
+
+  if (!$("[data-logic-extra]").data("logic-extra")) {
+    if ($(steps[x]).find(":input").is('[type="checkbox"]')) {
+      if (
+        checkCount === "*" ||
+        checkCount > $(steps[x]).find(':input[type="checkbox"]').length
+      ) {
+        $(steps[x])
+          .find(':input[type="checkbox"]')
+          .each(function () {
+            if ($(this).is(":checked")) {
+              if ($(steps[x]).find(":input[required]").length < 1) {
+                checkboxFilled = true;
+              }
+            } else {
+              checkboxFilled = false;
+            }
+          });
+      } else {
+        if (
+          $(steps[x]).find(':input[type="checkbox"]:checked').length >=
+          checkCount
+        ) {
+          checkboxFilled = true;
+        } else {
+          checkboxFilled = false;
+        }
+      }
+    }
+
+    if ($(steps[x]).find(":input[required]").is('[type="radio"]')) {
+      if ($(steps[x]).find(':input[type="radio"]').is(":checked")) {
+        radioFilled = true;
+      } else {
+        radioFilled = false;
+      }
+    }
+
+    $(steps[x])
+      .find(':input[type="text"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqInput = empReqInput.filter((y) => y.input !== i);
+        } else {
+          if (!empReqInput.find((y) => y.input === i)) {
+            empReqInput.push({ input: i });
+          }
+        }
+
+        if (empReqInput.length === 0) {
+          inputFilled = true;
+        } else {
+          inputFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("select[required]")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqSelect = empReqSelect.filter((y) => y.input !== i);
+        } else {
+          if (!empReqSelect.find((y) => y.input === i)) {
+            empReqSelect.push({ input: i });
+          }
+        }
+
+        if (empReqSelect.length === 0) {
+          selectFilled = true;
+        } else {
+          selectFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("textarea[required]")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqTextarea = empReqTextarea.filter((y) => y.input !== i);
+        } else {
+          if (!empReqTextarea.find((y) => y.input === i)) {
+            empReqTextarea.push({ input: i });
+          }
+        }
+
+        if (empReqTextarea.length === 0) {
+          textareaFilled = true;
+        } else {
+          textareaFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find(':input[type="email"][required]')
+      .each(function () {
+        if ($(this).val() !== "") {
+          validateEmail($(this).val());
+        } else {
+          emailFilled = false;
+        }
+      });
+  } else {
+    if ($(steps[x]).data("card")) {
+      answer = $(steps[x]).find("[data-go-to]").data("go-to");
+      selections = selections.filter((y) => y.step !== x);
+      selections.push({ step: x, selected: answer });
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    if (
+      $(steps[x])
+        .find("[data-answer]:visible")
+        .find(":input")
+        .is('[type="checkbox"]')
+    ) {
+      if (
+        checkCount === "*" ||
+        checkCount > $(steps[x]).find(':input[type="checkbox"]').length
+      ) {
+        $(steps[x])
+          .find(':input[type="checkbox"]')
+          .each(function () {
+            if ($(this).is(":checked")) {
+              if ($(steps[x]).find(":input[required]").length < 1) {
+                answer = $(this).parents("[data-go-to]").attr("data-go-to");
+                selections = selections.filter((y) => y.step !== x);
+                selections.push({ step: x, selected: answer });
+                checkboxFilled = true;
+              }
+            } else {
+              checkboxFilled = false;
+            }
+          });
+      } else {
+        if (
+          $(steps[x])
+            .find("[data-answer]:visible")
+            .find(':input[type="checkbox"]:checked').length >= checkCount
+        ) {
+          console.log($(steps[x]).find(":input[required]").length);
+          if ($(steps[x]).find(":input[required]").length < 1) {
+            answer = $(steps[x])
+              .find("[data-answer]:visible")
+              .find(':input[type="checkbox"]:checked')
+              .parents("[data-go-to]")
+              .attr("data-go-to");
+            selections = selections.filter((y) => y.step !== x);
+            selections.push({ step: x, selected: answer });
+            checkboxFilled = true;
+          }
+        } else {
+          checkboxFilled = false;
+        }
+      }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    if (
+      $(steps[x])
+        .find("[data-answer]:visible")
+        .find(":input[required]")
+        .is('[type="radio"]')
+    ) {
+      if ($(steps[x]).find(':input[type="radio"]').is(":checked")) {
+        radioFilled = true;
+      } else {
+        radioFilled = false;
+      }
+    }
+
+    ////////////////////////////text input validation/////////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="text"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqInput = empReqInput.filter((y) => y.input !== i);
+        } else {
+          if (!empReqInput.find((y) => y.input === i)) {
+            empReqInput.push({ input: i });
+          }
+        }
+
+        if (empReqInput.length === 0) {
+          inputFilled = true;
+        } else {
+          inputFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="text"]')
+      .each(function (i) {
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        if (answer) {
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+        }
+      });
+
+    ////////////////////////////select input validation///////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find("select[required]")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqSelect = empReqSelect.filter((y) => y.input !== i);
+        } else {
+          if (!empReqSelect.find((y) => y.input === i)) {
+            empReqSelect.push({ input: i });
+          }
+        }
+
+        if (empReqSelect.length === 0) {
+          selectFilled = true;
+        } else {
+          selectFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find("select")
+      .each(function (i) {
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        if (answer) {
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+        }
+      });
+
+    ////////////////////////////textarea validation////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find("textarea[required]")
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          empReqTextarea = empReqTextarea.filter((y) => y.input !== i);
+        } else {
+          if (!empReqTextarea.find((y) => y.input === i)) {
+            empReqTextarea.push({ input: i });
+          }
+        }
+
+        if (empReqTextarea.length === 0) {
+          textareaFilled = true;
+        } else {
+          textareaFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find("textarea")
+      .each(function (i) {
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        if (answer) {
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+        }
+      });
+
+    ///////////////////////////email validation//////////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="email"][required]')
+      .each(function (m) {
+        if ($(this).val() !== "") {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          if (answer) {
+            selections = selections.filter((y) => y.step !== x);
+            selections.push({ step: x, selected: answer });
+          }
+
+          validateEmail($(this).val());
+        } else {
+          emailFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="email"]')
+      .each(function (m) {
+        answer = $(this).parents("[data-go-to]").attr("data-go-to");
+        selections = selections.filter((y) => y.step !== x);
+        selections.push({ step: x, selected: answer });
+      });
+  }
+  console.log("validating", selections);
+  //console.log('input',inputFilled,'checkbox',checkboxFilled,'radio',radioFilled,'email',emailFilled)
+  if (
+    inputFilled &&
+    checkboxFilled &&
+    radioFilled &&
+    emailFilled &&
+    selectFilled &&
+    textareaFilled
+  ) {
+    enableBtn();
+  } else {
+    disableBtn();
+  }
+}
+
+function nextStep() {
+  x++;
+  if (x <= steps.length - 1) {
+    console.log(x, steps.length - 1);
+    updateStep();
+    if (memory) {
+      saveFilledInput();
+    }
+
+    $('[data-text="current-step"]').text(
+      $(steps[x]).data("card")
+        ? (curStep = curStep + 0)
+        : (curStep = curStep + 1)
+    );
+  }
+}
+
+function backStep() {
+  if (x > 0) {
+    $(progressbar[x]).removeClass("current");
+    x--;
+    updateStep();
+  }
+  $('[data-text="current-step"]').text((curStep = curStep - 1));
+}
+
+$("body").on("keypress", function (e) {
+  if (e.keyCode === 13 && fill) {
+    console.log("enter");
+    if ($("[data-enter]").data("enter")) {
+      $('[data-form="next-btn"]')[0].click();
+      e.preventDefault();
+      e.stopPropagation();
+    } else {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+});
+
+$("body").keydown(function (event) {
+  if ((event.metaKey || event.ctrlKey) && event.keyCode == 13) {
+    console.log(x, steps.length - 1);
+    if (x >= steps.length - 1) {
+      $('[data-form="submit-btn"]').click();
+    } else {
+      console.log("not submitting");
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+});
+
+$('[data-form="next-btn"]').on("click", function () {
+  validation();
+  nextStep();
+  $(steps[x]).find(":input").trigger("input");
+});
+
+$('[data-form="back-btn"]').on("click", function () {
+  validation();
+  backStep();
+});
+
+$(steps)
+  .find(":input")
+  .on("input", function (input) {
+    validation();
+  });
+
+$(steps)
+  .find(":radio")
+  .on("click", function () {
+    if ($(steps[x]).find(":input").is(":checked")) {
+      //conditional logic
+      $(steps[x])
+        .find(":input[type='radio']:checked")
+        .each(function () {
+          answer =
+            $(this).attr("data-go-to") !== ""
+              ? $(this).attr("data-go-to")
+              : $(this).parents("[data-go-to]").data("go-to");
+          console.log(answer);
+        });
+      selections = selections.filter((y) => y.step !== x);
+      selections.push({ step: x, selected: answer });
+      console.log(selections);
+
+      if (
+        $(steps[x]).find("[data-radio-skip]:visible").data("radio-skip") ===
+        true
+      ) {
+        console.log("skip");
+        if (
+          textareaLength === 0 &&
+          textInputLength === 0 &&
+          emailInputLength === 0 &&
+          checkboxInputLength === 0
+        ) {
+          setTimeout(function () {
+            nextStep();
+          }, $(steps[x]).find("[data-radio-delay]").data("radio-delay"));
+        }
+      }
+    }
+  });
+
+$('[data-form="submit-btn"]').on("click", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  console.log("form is being submitted");
+
+  if ($("[data-logic-extra]").data("logic-extra")) {
+    if (
+      curStep === $('[data-form="step"]:not([data-card="true"])').length ||
+      $(steps[x]).find('[data-form="submit"]:visible').length > 0
+    ) {
+      $(this).prop("novalidate", true);
+      $(steps).find(":input").prop("required", false);
+    }
+  }
+
+  localStorage.removeItem("filledInput");
+  $(this).parents("form").submit();
+});
+
+steps.each(function () {
+  $('[data-form="progress"]').append(progressbarClone.clone());
+});
+progressbar = $('[data-form="progress"]').children();
+
+updateStep();
+
+//if(!$('[data-nav-btn]').data('nav-btn')){$('[data-nav-btn]').remove()}
+//if(!$('[data-nav-progress]').data('nav-progress')){$('[data-nav-progress]').remove()}
+//if(!$('[data-step-counter]').data('step-counter')){$('[data-step-counter]').remove()}
+//if(!$('[data-next-btn]').data('step-counter')){$('[data-next-btn]').remove()}
+//if(!$('[data-submit-btn]').data('step-counter')){$('[data-submit-btn]').remove()}
     disableBtn();
   } else {
     enableBtn();
