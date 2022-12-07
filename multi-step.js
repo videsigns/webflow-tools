@@ -1,4 +1,5 @@
 //7-12-22 4:19pm GMT+0
+
 var x = 0;
 var curStep = 0;
 var steps = $('[data-form="step"]');
