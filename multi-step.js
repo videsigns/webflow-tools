@@ -1,4 +1,5 @@
-//7-12-22 4:19pm GMT+0
+//reverted
+//29-11-22 21:40GMT+0
 
 var x = 0;
 var curStep = 0;
@@ -28,7 +29,6 @@ var filledInput = [];
 var savedFilledInput = JSON.parse(localStorage.getItem("filledInput"));
 var memory = $("[data-memory]").data("memory");
 var quiz = $("[data-quiz]").data("quiz");
-const url = new URL(window.location.href);
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -71,17 +71,29 @@ if (quiz) {
 function disableBtn() {
   fill = false;
   //next button style
-  $('[data-form="next-btn"]').addClass("disabled");
+  $('[data-form="next-btn"]').css({
+    opacity: "0.2",
+    "pointer-events": "none",
+  });
   //submit btn style
-  $('[data-form="submit-btn"]').addClass("disabled");
+  $('[data-form="submit-btn"]').css({
+    opacity: "0.5",
+    "pointer-events": "none",
+  });
 }
 
 function enableBtn() {
   fill = true;
   //next button style
-  $('[data-form="next-btn"]').removeClass("disabled");
+  $('[data-form="next-btn"]').css({
+    opacity: "1",
+    "pointer-events": "auto",
+  });
   //submit btn style
-  $('[data-form="submit-btn"]').removeClass("disabled");
+  $('[data-form="submit-btn"]').css({
+    opacity: "1",
+    "pointer-events": "auto",
+  });
 }
 
 function saveFilledInput() {
@@ -98,19 +110,15 @@ function saveFilledInput() {
               (e) => e.inputName !== $(this).attr("name")
             );
 
-            if ($(this).val() !== "") {
-              filledInput.push({
-                inputName: $(this).attr("name"),
-                value: $(this).val(),
-              });
-            }
+            filledInput.push({
+              inputName: $(this).attr("name"),
+              value: $(this).val(),
+            });
           } else {
-            if ($(this).val() !== "") {
-              filledInput.push({
-                inputName: $(this).attr("name"),
-                value: $(this).val(),
-              });
-            }
+            filledInput.push({
+              inputName: $(this).attr("name"),
+              value: $(this).val(),
+            });
           }
         }
       } else {
@@ -119,31 +127,18 @@ function saveFilledInput() {
             (e) => e.inputName !== $(this).attr("name")
           );
 
-          if ($(this).val() !== "") {
-            filledInput.push({
-              inputName: $(this).attr("name"),
-              value: $(this).val(),
-            });
-          }
+          filledInput.push({
+            inputName: $(this).attr("name"),
+            value: $(this).val(),
+          });
         } else {
-          if ($(this).val() !== "") {
-            filledInput.push({
-              inputName: $(this).attr("name"),
-              value: $(this).val(),
-            });
-          }
+          filledInput.push({
+            inputName: $(this).attr("name"),
+            value: $(this).val(),
+          });
         }
       }
     });
-  console.log(filledInput);
-  if (filledInput) {
-    filledInput.forEach((x) => {
-      console.log(x);
-      url.searchParams.delete(x.inputName);
-      url.searchParams.set(x.inputName, x.value);
-      window.history.replaceState(null, null, url); // or pushState
-    });
-  }
 
   localStorage.removeItem("filledInput");
   localStorage.setItem("filledInput", JSON.stringify(filledInput));
@@ -166,7 +161,6 @@ function updateStep() {
 
   //conditional logic
   selection = selections.filter((y) => y.step === x - 1);
-  console.log(selection, "updating steps");
   $("[data-answer]").hide();
 
   //hide unhide steps
@@ -549,7 +543,6 @@ function validation() {
         selections.push({ step: x, selected: answer });
       });
   }
-  console.log("validating", selections);
   //console.log('input',inputFilled,'checkbox',checkboxFilled,'radio',radioFilled,'email',emailFilled)
   if (
     inputFilled &&
@@ -640,18 +633,16 @@ $(steps)
   .on("click", function () {
     if ($(steps[x]).find(":input").is(":checked")) {
       //conditional logic
-      $(steps[x])
-        .find(":input[type='radio']:checked")
-        .each(function () {
-          answer =
-            $(this).attr("data-go-to") !== ""
-              ? $(this).attr("data-go-to")
-              : $(this).parents("[data-go-to]").data("go-to");
-          console.log(answer);
-        });
+      answer = $(steps[x])
+        .find("input[type='radio']:checked")
+        .attr("data-go-to")
+        ? $(steps[x]).find("input[type='radio']:checked").attr("data-go-to")
+        : $(steps[x])
+            .find("input[type='radio']:checked")
+            .parents("[data-go-to]")
+            .data("go-to");
       selections = selections.filter((y) => y.step !== x);
       selections.push({ step: x, selected: answer });
-      console.log(selections);
 
       if (
         $(steps[x]).find("[data-radio-skip]:visible").data("radio-skip") ===
