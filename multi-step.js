@@ -1,4 +1,5 @@
 //12/12/22 bug fixes
+// vim added custom disable class
 
 var x = 0;
 var curStep = 0;
@@ -69,21 +70,33 @@ if (quiz) {
   });
 }
 
-/*function disableBtn() {
-  fill = false;
-  //next button style
-  $('[data-form="next-btn"]').addClass('disabled');
-  //submit btn style
-  $('[data-form="submit-btn"]').addClass('disabled');
-}
+// function disableBtn() {
+//   fill = false;
+//   //next button style
+//   $('[data-form="next-btn"]').css({
+//     opacity: "0.5",
+//     "pointer-events": "none",
+//   });
+//   //submit btn style
+//   $('[data-form="submit-btn"]').css({
+//     opacity: "0.5",
+//     "pointer-events": "none",
+//   });
+// }
 
-function enableBtn() {
-  fill = true;
-  //next button style
-  $('[data-form="next-btn"]').removeClass('disabled');
-  //submit btn style
-  $('[data-form="submit-btn"]').removeClass('disabled');
-}*/
+// function enableBtn() {
+//   fill = true;
+//   //next button style
+//   $('[data-form="next-btn"]').css({
+//     opacity: "1",
+//     "pointer-events": "auto",
+//   });
+//   //submit btn style
+//   $('[data-form="submit-btn"]').css({
+//     opacity: "1",
+//     "pointer-events": "auto",
+//   });
+// }
 
 function disableBtn() {
   fill = false;
@@ -97,6 +110,10 @@ function disableBtn() {
     opacity: "0.5",
     "pointer-events": "none",
   });
+
+  $('[data-form="next-btn"]').addClass("disabled");
+  //submit btn style
+  $('[data-form="submit-btn"]').addClass("disabled");
 }
 
 function enableBtn() {
@@ -108,9 +125,14 @@ function enableBtn() {
   });
   //submit btn style
   $('[data-form="submit-btn"]').css({
-    opacity: "1",
+    //opacity: "1",
     "pointer-events": "auto",
   });
+
+  //next button style
+  $('[data-form="next-btn"]').removeClass("disabled");
+  //submit btn style
+  $('[data-form="submit-btn"]').removeClass("disabled");
 }
 
 function saveFilledInput() {
