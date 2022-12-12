@@ -1,4 +1,4 @@
-//12/12/22
+//12/12/22 bug fixes
 
 var x = 0;
 var curStep = 0;
