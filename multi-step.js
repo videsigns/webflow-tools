@@ -125,7 +125,7 @@ function enableBtn() {
   });
   //submit btn style
   $('[data-form="submit-btn"]').css({
-    //opacity: "1",
+    opacity: "1",
     "pointer-events": "auto",
   });
 
