@@ -1,5 +1,4 @@
-//12/12/22 bug fixes
-// vim added custom disable class
+//16-12-22
 
 var x = 0;
 var curStep = 0;
@@ -31,6 +30,8 @@ var memory = $("[data-memory]").data("memory");
 var quiz = $("[data-quiz]").data("quiz");
 var progress = 0;
 const url = new URL(window.location.href);
+var skipTo = 0;
+var next = false;
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -41,6 +42,14 @@ $('[data-form="submit-btn"]').hide();
 $(steps[x]).data("card") ? (curStep = curStep + 0) : (curStep = curStep + 1);
 $('[data-text="current-step"]').text(curStep);
 steps.hide();
+
+function getSafe(fn, defaultVal) {
+  try {
+    return fn();
+  } catch (e) {
+    return defaultVal;
+  }
+}
 
 if (savedFilledInput && memory) {
   savedFilledInput.forEach((x) => {
@@ -70,49 +79,17 @@ if (quiz) {
   });
 }
 
-// function disableBtn() {
-//   fill = false;
-//   //next button style
-//   $('[data-form="next-btn"]').css({
-//     opacity: "0.5",
-//     "pointer-events": "none",
-//   });
-//   //submit btn style
-//   $('[data-form="submit-btn"]').css({
-//     opacity: "0.5",
-//     "pointer-events": "none",
-//   });
-// }
-
-// function enableBtn() {
-//   fill = true;
-//   //next button style
-//   $('[data-form="next-btn"]').css({
-//     opacity: "1",
-//     "pointer-events": "auto",
-//   });
-//   //submit btn style
-//   $('[data-form="submit-btn"]').css({
-//     opacity: "1",
-//     "pointer-events": "auto",
-//   });
-// }
-
 function disableBtn() {
   fill = false;
   //next button style
   $('[data-form="next-btn"]').css({
-    opacity: "0.5",
     "pointer-events": "none",
   });
-  //submit btn style
-  $('[data-form="submit-btn"]').css({
-    opacity: "0.5",
-    "pointer-events": "none",
-  });
-
   $('[data-form="next-btn"]').addClass("disabled");
   //submit btn style
+  $('[data-form="submit-btn"]').css({
+    "pointer-events": "none",
+  });
   $('[data-form="submit-btn"]').addClass("disabled");
 }
 
@@ -120,18 +97,13 @@ function enableBtn() {
   fill = true;
   //next button style
   $('[data-form="next-btn"]').css({
-    opacity: "1",
     "pointer-events": "auto",
   });
-  //submit btn style
-  $('[data-form="submit-btn"]').css({
-    opacity: "1",
-    "pointer-events": "auto",
-  });
-
-  //next button style
   $('[data-form="next-btn"]').removeClass("disabled");
   //submit btn style
+  $('[data-form="submit-btn"]').css({
+    "pointer-events": "auto",
+  });
   $('[data-form="submit-btn"]').removeClass("disabled");
 }
 
@@ -186,10 +158,10 @@ function saveFilledInput() {
         }
       }
     });
-  console.log(filledInput);
+  //console.log(filledInput)
   if (filledInput) {
     filledInput.forEach((x) => {
-      console.log(x);
+      //console.log(x)
       url.searchParams.delete(x.inputName);
       url.searchParams.set(x.inputName, x.value);
       window.history.replaceState(null, null, url); // or pushState
@@ -198,7 +170,7 @@ function saveFilledInput() {
 
   localStorage.removeItem("filledInput");
   localStorage.setItem("filledInput", JSON.stringify(filledInput));
-  console.log(savedFilledInput);
+  //console.log(savedFilledInput)
 }
 
 function updateStep() {
@@ -217,7 +189,18 @@ function updateStep() {
 
   //conditional logic
   selection = selections.filter((y) => y.step === x - 1);
-  console.log(selection, "updating steps");
+  //console.log(selection[0], 'updating steps')
+
+  if (next) {
+    x = getSafe(() => selection[0]["skipTo"])
+      ? parseInt(getSafe(() => selection[0]["skipTo"]))
+      : x;
+  } else {
+    x = getSafe(() => selection[0]["backTo"])
+      ? parseInt(getSafe(() => selection[0]["backTo"]))
+      : x;
+  }
+  //console.log(x)
   $("[data-answer]").hide();
 
   //hide unhide steps
@@ -243,7 +226,7 @@ function updateStep() {
     $(steps[x]).find(`[data-answer="${selection[0].selected}"]`).show();
   } else {
     $(steps[x]).find(`[data-answer="${answer}"]`).show();
-    console.log($(steps[x]).find(`[data-answer="${answer}"]`).find(":input"));
+    //console.log($(steps[x]).find(`[data-answer="${answer}"]`).find(':input'))
   }
 
   //hide unhide button
@@ -267,7 +250,7 @@ function updateStep() {
   $($(steps[x]).find("input[autofocus]")[0]).focus();
   $($(steps[x]).find("textarea[autofocus]")[0]).focus();
 
-  $(steps[x]).find(":input").trigger("input");
+  //$(steps[x]).find(':input').trigger('input');
   validation();
 
   for (idx = 0; idx <= progress; idx++) {
@@ -279,7 +262,7 @@ function updateStep() {
 
 function validateEmail(email) {
   var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,20})?$/;
-  console.log("email", email);
+  //console.log('email', email)
   if (!emailReg.test(email)) {
     emailFilled = false;
   } else {
@@ -454,27 +437,28 @@ function validation() {
             .find("[data-answer]:visible")
             .find(':input[type="checkbox"]:checked').length >= checkCount
         ) {
-          console.log($(steps[x]).find(":input[required]").length);
-          if ($(steps[x]).find(":input[required]").length < 1) {
-            if (
-              $(steps[x])
-                .find("[data-answer]:visible")
-                .find(':input[type="checkbox"]:checked')
-                .parents("[data-go-to]")
-                .attr("data-go-to")
-            ) {
-              answer = $(steps[x])
-                .find("[data-answer]:visible")
-                .find(':input[type="checkbox"]:checked')
-                .parents("[data-go-to]")
-                .attr("data-go-to");
-              selections = selections.filter((y) => y.step !== x);
-              selections.push({ step: x, selected: answer });
-            }
+          //console.log($(steps[x]).find(':input[required').length);
+          //if ($(steps[x]).find(':input[required]').length < 1) {
+
+          if (
+            $(steps[x])
+              .find("[data-answer]:visible")
+              .find(':input[type="checkbox"]:checked')
+              .parents("[data-go-to]")
+              .attr("data-go-to")
+          ) {
+            answer = $(steps[x])
+              .find("[data-answer]:visible")
+              .find(':input[type="checkbox"]:checked')
+              .parents("[data-go-to]")
+              .attr("data-go-to");
             selections = selections.filter((y) => y.step !== x);
             selections.push({ step: x, selected: answer });
-            checkboxFilled = true;
           }
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          checkboxFilled = true;
+          //}
         } else {
           checkboxFilled = false;
         }
@@ -488,11 +472,18 @@ function validation() {
         .find(":input[required]")
         .is('[type="radio"]')
     ) {
-      if ($(steps[x]).find(':input[type="radio"]').is(":checked")) {
+      if (
+        $(steps[x])
+          .find("[data-answer]:visible")
+          .find(':input[type="radio"][required]')
+          .is(":checked")
+      ) {
         radioFilled = true;
       } else {
         radioFilled = false;
       }
+    } else {
+      radioFilled = true;
     }
 
     ////////////////////////////text input validation/////////////////////////////////////
@@ -519,10 +510,18 @@ function validation() {
       .find("[data-answer]:visible")
       .find(':input[type="text"]')
       .each(function (i) {
+        if ($(this).parents("[data-skip-to]").attr("data-skip-to")) {
+          skipTo = $(this).parents("[data-skip-to]").attr("data-skip-to");
+        }
         if ($(this).parents("[data-go-to]").attr("data-go-to")) {
           answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
         }
       });
 
@@ -665,7 +664,7 @@ function nextStep() {
   }
 
   if (x <= steps.length - 1) {
-    console.log(x, steps.length - 1);
+    //console.log(x, steps.length - 1)
     updateStep();
     if (memory) {
       saveFilledInput();
@@ -690,7 +689,7 @@ function backStep() {
 
 $("body").on("keypress", function (e) {
   if (e.keyCode === 13 && fill) {
-    console.log("enter");
+    //console.log('enter');
     if ($("[data-enter]").data("enter")) {
       $('[data-form="next-btn"]')[0].click();
       e.preventDefault();
@@ -704,11 +703,11 @@ $("body").on("keypress", function (e) {
 
 $("body").keydown(function (event) {
   if ((event.metaKey || event.ctrlKey) && event.keyCode == 13) {
-    console.log(x, steps.length - 1);
+    //console.log(x, steps.length - 1)
     if (x >= steps.length - 1) {
       $('[data-form="submit-btn"]').click();
     } else {
-      console.log("not submitting");
+      //console.log('not submitting')
       event.preventDefault();
       event.stopPropagation();
     }
@@ -716,14 +715,16 @@ $("body").keydown(function (event) {
 });
 
 $('[data-form="next-btn"]').on("click", function () {
-  validation();
+  next = true;
   nextStep();
-  $(steps[x]).find(":input").trigger("input");
+  //validation();
+  //$(steps[x]).find(':input').trigger('input');
 });
 
 $('[data-form="back-btn"]').on("click", function () {
-  validation();
+  next = false;
   backStep();
+  //validation();
 });
 
 $(steps)
@@ -736,8 +737,10 @@ $(steps)
   .find(":radio")
   .on("click", function () {
     if ($(steps[x]).find(":input").is(":checked")) {
+      //console.log('selecting')
       //conditional logic
       $(steps[x])
+        .find("[data-answer]:visible")
         .find(":input[type='radio']:checked")
         .each(function () {
           if ($(this).attr("data-go-to")) {
@@ -755,7 +758,7 @@ $(steps)
         $(steps[x]).find("[data-radio-skip]:visible").data("radio-skip") ===
         true
       ) {
-        console.log("skip");
+        //console.log('skip')
         if (
           textareaLength === 0 &&
           textInputLength === 0 &&
@@ -772,7 +775,7 @@ $(steps)
 
 //custom indicator nav
 $('[data-form="custom-progress-indicator"]').on("click", function (form) {
-  console.log($(this).index(), x);
+  //console.log($(this).index(), x)
   if ($(this).index() <= progress) {
     x = $(this).index();
     updateStep();
@@ -782,7 +785,7 @@ $('[data-form="custom-progress-indicator"]').on("click", function (form) {
 $('[data-form="submit-btn"]').on("click", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  console.log("form is being submitted");
+  //console.log('form is being submitted')
 
   if ($("[data-logic-extra]").data("logic-extra")) {
     if (
