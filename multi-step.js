@@ -1,4 +1,4 @@
-//16-12-22 - updated button opacity
+//16-12-22 - updated button opacity fix
 
 var x = 0;
 var curStep = 0;
