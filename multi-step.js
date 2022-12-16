@@ -1,4 +1,4 @@
-//16-12-22
+//16-12-22 - updated button opacity fix
 
 var x = 0;
 var curStep = 0;
@@ -84,12 +84,16 @@ function disableBtn() {
   //next button style
   $('[data-form="next-btn"]').css({
     "pointer-events": "none",
+    opacity: "0.4",
   });
+
   $('[data-form="next-btn"]').addClass("disabled");
   //submit btn style
   $('[data-form="submit-btn"]').css({
     "pointer-events": "none",
+    opacity: "0.4",
   });
+
   $('[data-form="submit-btn"]').addClass("disabled");
 }
 
@@ -98,11 +102,13 @@ function enableBtn() {
   //next button style
   $('[data-form="next-btn"]').css({
     "pointer-events": "auto",
+    opacity: "1",
   });
   $('[data-form="next-btn"]').removeClass("disabled");
   //submit btn style
   $('[data-form="submit-btn"]').css({
     "pointer-events": "auto",
+    opacity: "1",
   });
   $('[data-form="submit-btn"]').removeClass("disabled");
 }
