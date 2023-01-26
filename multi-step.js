@@ -1,4 +1,4 @@
-//16-12-22 - updated button opacity fix
+//26-1-23 Beta pushed to main
 
 var x = 0;
 var curStep = 0;
@@ -30,8 +30,13 @@ var memory = $("[data-memory]").data("memory");
 var quiz = $("[data-quiz]").data("quiz");
 var progress = 0;
 const url = new URL(window.location.href);
+let params = $("[data-query-param]").data("query-param");
 var skipTo = 0;
 var next = false;
+let selArr = [];
+let selString = [];
+let emptyInput = 0;
+let searchQ = [];
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -42,6 +47,12 @@ $('[data-form="submit-btn"]').hide();
 $(steps[x]).data("card") ? (curStep = curStep + 0) : (curStep = curStep + 1);
 $('[data-text="current-step"]').text(curStep);
 steps.hide();
+
+function getParams() {
+  url.searchParams.forEach(function (val, key) {
+    searchQ.push({ val, key });
+  });
+}
 
 function getSafe(fn, defaultVal) {
   try {
@@ -72,6 +83,28 @@ if (savedFilledInput && memory) {
   });
 }
 
+if (params) {
+  getParams();
+  searchQ.forEach((y) => {
+    console.log(y);
+    if (
+      $(`input[name="${y.key}"][value="${x.val}"]`).attr("type") === "radio"
+    ) {
+      $(`input[name="${y.key}"][value="${x.val}"]`).click();
+      $(`input[name="${y.key}"][value="${x.val}"]`)
+        .siblings(".w-radio-input")
+        .addClass("w--redirected-checked");
+    } else if (y.val === "on") {
+      $(`input[name="${y.key}"]`).click();
+      $(`input[name="${y.key}"]`)
+        .siblings(".w-checkbox-input")
+        .addClass("w--redirected-checked");
+    } else {
+      $(`input[name="${y.key}"]`).val(y.val);
+    }
+  });
+}
+
 if (quiz) {
   steps.each(function () {
     $(this).children().attr("data-radio-skip", true);
@@ -83,17 +116,15 @@ function disableBtn() {
   fill = false;
   //next button style
   $('[data-form="next-btn"]').css({
-    "pointer-events": "none",
     opacity: "0.4",
+    "pointer-events": "none",
   });
-
   $('[data-form="next-btn"]').addClass("disabled");
   //submit btn style
   $('[data-form="submit-btn"]').css({
-    "pointer-events": "none",
     opacity: "0.4",
+    "pointer-events": "none",
   });
-
   $('[data-form="submit-btn"]').addClass("disabled");
 }
 
@@ -186,26 +217,58 @@ function updateStep() {
   selectFilled = true;
   textareaFilled = true;
   emailFilled = true;
+  emptyInput = 0;
   // empReqInput = [];
   // empReqSelect = [];
   // empReqTextarea = [];
+
+  //custom clickable progress indicator
+  if ($("[data-clickable]").data("clickable")) {
+    console.log("clickable indicator");
+    steps.find(":input[required]").each(function () {
+      $(
+        $('[data-form="custom-progress-indicator"]')[
+          $(this).parents('[data-form="step"]').index()
+        ]
+      ).text(
+        $(
+          $('[data-form="custom-progress-indicator"]')[
+            $(this).parents('[data-form="step"]').index()
+          ]
+        )
+          .text()
+          .replace("*", "")
+      );
+      if ($(this).val() === "") {
+        emptyInput++;
+        $(
+          $('[data-form="custom-progress-indicator"]')[
+            $(this).parents('[data-form="step"]').index()
+          ]
+        ).append("*");
+      }
+    });
+    if (emptyInput > 0) {
+      $('input[type="submit"]').addClass("disabled");
+    } else {
+      $('input[type="submit"]').removeClass("disabled");
+    }
+  }
 
   $('[data-form="custom-progress-indicator"]').removeClass("current");
   $($('[data-form="custom-progress-indicator"]')[x]).addClass("current");
 
   //conditional logic
   selection = selections.filter((y) => y.step === x - 1);
+  console.log(x, selections, selection);
   //console.log(selection[0], 'updating steps')
 
   if (next) {
     x = getSafe(() => selection[0]["skipTo"])
       ? parseInt(getSafe(() => selection[0]["skipTo"]))
       : x;
-  } else {
-    x = getSafe(() => selection[0]["backTo"])
-      ? parseInt(getSafe(() => selection[0]["backTo"]))
-      : x;
   }
+
   //console.log(x)
   $("[data-answer]").hide();
 
@@ -516,8 +579,8 @@ function validation() {
       .find("[data-answer]:visible")
       .find(':input[type="text"]')
       .each(function (i) {
-        if ($(this).parents("[data-skip-to]").attr("data-skip-to")) {
-          skipTo = $(this).parents("[data-skip-to]").attr("data-skip-to");
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
         }
         if ($(this).parents("[data-go-to]").attr("data-go-to")) {
           answer = $(this).parents("[data-go-to]").attr("data-go-to");
@@ -555,10 +618,18 @@ function validation() {
       .find("[data-answer]:visible")
       .find(':input[type="number"]')
       .each(function (i) {
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+        }
         if ($(this).parents("[data-go-to]").attr("data-go-to")) {
           answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
         }
       });
 
@@ -586,10 +657,18 @@ function validation() {
       .find("[data-answer]:visible")
       .find("select")
       .each(function (i) {
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+        }
         if ($(this).parents("[data-go-to]").attr("data-go-to")) {
           answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
         }
       });
 
@@ -617,10 +696,18 @@ function validation() {
       .find("[data-answer]:visible")
       .find("textarea")
       .each(function (i) {
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+        }
         if ($(this).parents("[data-go-to]").attr("data-go-to")) {
           answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
         }
       });
 
@@ -640,10 +727,18 @@ function validation() {
       .find("[data-answer]:visible")
       .find(':input[type="email"]')
       .each(function (m) {
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+        }
         if ($(this).parents("[data-go-to]").attr("data-go-to")) {
           answer = $(this).parents("[data-go-to]").attr("data-go-to");
           selections = selections.filter((y) => y.step !== x);
           selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
         }
       });
   }
@@ -687,7 +782,13 @@ function nextStep() {
 function backStep() {
   if (x > 0) {
     $(progressbar[x]).removeClass("current");
-    x--;
+    console.log("curIDX", x, selections.filter((sk) => sk.skipTo === x).length);
+    selections.filter((sk) => sk.skipTo === x).length > 0
+      ? (x = parseInt(
+          getSafe(() => selections.filter((sk) => sk.skipTo === x)[0].backTo)
+        ))
+      : x--;
+
     updateStep();
   }
   $('[data-text="current-step"]').text((curStep = curStep - 1));
@@ -720,17 +821,26 @@ $("body").keydown(function (event) {
   }
 });
 
+function selectionQuiz() {
+  if ($(this).find('[data-btn="check"]')) {
+    $("[data-selection]").hide();
+    if ($(`[data-selection="${selString}"]`).data("selection")) {
+      $(`[data-selection="${selString}"]`).fadeIn();
+    } else {
+      $('[data-selection="other"]').fadeIn();
+    }
+  }
+}
+
 $('[data-form="next-btn"]').on("click", function () {
   next = true;
   nextStep();
-  //validation();
-  //$(steps[x]).find(':input').trigger('input');
+  selectionQuiz();
 });
 
 $('[data-form="back-btn"]').on("click", function () {
   next = false;
   backStep();
-  //validation();
 });
 
 $(steps)
@@ -743,20 +853,47 @@ $(steps)
   .find(":radio")
   .on("click", function () {
     if ($(steps[x]).find(":input").is(":checked")) {
-      //console.log('selecting')
-      //conditional logic
+      if ($(this).parents("[data-skip-to]").data("skip-to")) {
+        skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+      } else if ($(this).data("skip-to")) {
+        skipTo = $(this).data("skip-to");
+      }
+      selArr = [];
+      $(steps)
+        .find("[data-selected]:checked")
+        .each(function (y, i) {
+          selArr.push({ selected: $(this).data("selected") });
+        });
+
+      selString = [];
+      selArr.forEach((sel) => selString.push(sel.selected));
+      console.log("selected array", selString);
+
       $(steps[x])
         .find("[data-answer]:visible")
         .find(":input[type='radio']:checked")
         .each(function () {
-          if ($(this).attr("data-go-to")) {
+          if ($(this).data("go-to")) {
             answer = $(this).attr("data-go-to");
+            console.log("radio", answer);
             selections = selections.filter((y) => y.step !== x);
             selections.push({ step: x, selected: answer });
+            console.log("selection", skipTo);
+            if (skipTo) {
+              console.log("radio skipping to ", skipTo);
+              objIndex = selections.findIndex((obj) => obj.step === x);
+              selections[objIndex].skipTo = parseInt(skipTo) - 1;
+              selections[objIndex].backTo = x;
+            }
           } else if ($(this).parents("[data-go-to]").data("go-to")) {
             answer = $(this).parents("[data-go-to]").data("go-to");
             selections = selections.filter((y) => y.step !== x);
             selections.push({ step: x, selected: answer });
+            if (skipTo) {
+              objIndex = selections.findIndex((obj) => obj.step === x);
+              selections[objIndex].skipTo = parseInt(skipTo) - 1;
+              selections[objIndex].backTo = x;
+            }
           }
         });
 
@@ -772,28 +909,61 @@ $(steps)
           checkboxInputLength === 0
         ) {
           setTimeout(function () {
+            next = true;
             nextStep();
+            selectionQuiz();
           }, $(steps[x]).find("[data-radio-delay]").data("radio-delay"));
         }
       }
     }
   });
 
-//custom indicator nav
-$('[data-form="custom-progress-indicator"]').on("click", function (form) {
-  //console.log($(this).index(), x)
-  if ($(this).index() <= progress) {
-    x = $(this).index();
-    updateStep();
+////////////////////////////custom indicator nav
+if ($("[data-clickable-all]").data("clickable-all")) {
+  $('[data-form="custom-progress-indicator"]').removeClass("disabled");
+} else {
+  $('[data-form="custom-progress-indicator"]').addClass("disabled");
+}
+function clickableIndicator() {
+  console.log($(this).index());
+  $('[data-form="progress-indicator"]').removeClass("current");
+
+  if ($("[data-clickable]").data("clickable")) {
+    if ($("[data-clickable]").data("clickable-all")) {
+      x = $(this).index();
+      updateStep();
+    } else {
+      if ($(this).index() <= progress) {
+        x = $(this).index();
+        updateStep();
+      }
+    }
   }
-});
+}
+// $('[data-form="progress-indicator"]').on('click', clickableIndicator)
+$('[data-form="custom-progress-indicator"]').on("click", clickableIndicator);
+/////////////////////
+
+/////debug mode//////////////////
+if ($('[data-form="multistep"]').data("debug-mode")) {
+  console.log("debug mode");
+  //data go to attr
+  $("[data-go-to]").each(function () {
+    $(this).append("<br>Data Go To = ", $(this).data("go-to"));
+  });
+  //data answer attr
+  $("[data-answer]").each(function () {
+    $(this).append("<br>Data Answer = ", $(this).data("answer"));
+  });
+}
+/////////////////////////////
 
 $('[data-form="submit-btn"]').on("click", function (e) {
   e.preventDefault();
   e.stopPropagation();
   //console.log('form is being submitted')
 
-  if ($("[data-logic-extra]").data("logic-extra")) {
+  if ($('[data-form="multistep"]').data("logic-extra")) {
     if (
       curStep === $('[data-form="step"]:not([data-card="true"])').length ||
       $(steps[x]).find('[data-form="submit"]:visible').length > 0
@@ -803,15 +973,26 @@ $('[data-form="submit-btn"]').on("click", function (e) {
     }
   }
 
+  //function to remove unanswered card
+  if ($('[data-form="multistep"]').data("remove-unfilled")) {
+    for (j = 1; j <= selections.length; j++) {
+      $(steps[j])
+        .find(
+          `[data-answer]:not([data-answer="${selections[j - 1].selected}"])`
+        )
+        .remove();
+    }
+  }
+
   localStorage.removeItem("filledInput");
   $(this).parents("form").submit();
 });
 
 steps.each(function () {
-  $('[data-form="progress"]').append(progressbarClone.clone());
+  $('[data-form="progress"]').append(progressbarClone.clone(true, true));
 });
 progressbar = $('[data-form="progress"]').children();
-
+$('[data-form="progress-indicator"]').on("click", clickableIndicator);
 updateStep();
 
 //if(!$('[data-nav-btn]').data('nav-btn')){$('[data-nav-btn]').remove()}
