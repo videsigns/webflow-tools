@@ -1,4 +1,4 @@
-//26-1-23 Beta pushed to main
+//7-2-22 Text area update
 
 var x = 0;
 var curStep = 0;
@@ -37,6 +37,7 @@ let selArr = [];
 let selString = [];
 let emptyInput = 0;
 let searchQ = [];
+let domainAllowed = true;
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -79,6 +80,7 @@ if (savedFilledInput && memory) {
         .addClass("w--redirected-checked");
     } else {
       $(`input[name="${x.inputName}"]`).val(x.value);
+      $(`textarea[name="${y.key}"]`).val(y.val);
     }
   });
 }
@@ -86,12 +88,13 @@ if (savedFilledInput && memory) {
 if (params) {
   getParams();
   searchQ.forEach((y) => {
-    console.log(y);
+    console.log(y, $(`input[value="${y.val}"]`).attr("type"));
     if (
-      $(`input[name="${y.key}"][value="${x.val}"]`).attr("type") === "radio"
+      $(`input[name="${y.key}"][value="${y.val}"]`).attr("type") === "radio"
     ) {
-      $(`input[name="${y.key}"][value="${x.val}"]`).click();
-      $(`input[name="${y.key}"][value="${x.val}"]`)
+      console.log("radio");
+      $(`input[name="${y.key}"][value="${y.val}"]`).click();
+      $(`input[name="${y.key}"][value="${y.val}"]`)
         .siblings(".w-radio-input")
         .addClass("w--redirected-checked");
     } else if (y.val === "on") {
@@ -101,6 +104,7 @@ if (params) {
         .addClass("w--redirected-checked");
     } else {
       $(`input[name="${y.key}"]`).val(y.val);
+      $(`textarea[name="${y.key}"]`).val(y.val);
     }
   });
 }
@@ -218,9 +222,9 @@ function updateStep() {
   textareaFilled = true;
   emailFilled = true;
   emptyInput = 0;
-  // empReqInput = [];
-  // empReqSelect = [];
-  // empReqTextarea = [];
+  empReqInput = [];
+  empReqSelect = [];
+  empReqTextarea = [];
 
   //custom clickable progress indicator
   if ($("[data-clickable]").data("clickable")) {
@@ -260,7 +264,7 @@ function updateStep() {
 
   //conditional logic
   selection = selections.filter((y) => y.step === x - 1);
-  console.log(x, selections, selection);
+  //console.log(x,selections,selection)
   //console.log(selection[0], 'updating steps')
 
   if (next) {
@@ -330,6 +334,26 @@ function updateStep() {
 }
 
 function validateEmail(email) {
+  let domainEntered = email.includes("@")
+    ? email.split("@")[1].split(".")[0]
+    : [];
+  let dom = [];
+  let blockedDomain = $("[data-block-domain]").data("block-domain").split(",");
+  $("[data-block-domain]")
+    .data("block-domain")
+    .split(",")
+    .forEach(function (x) {
+      //console.log(x, domainEntered)
+      if (x.includes(domainEntered)) {
+        dom.push(domainEntered);
+      }
+    });
+  if (dom.length > 0) {
+    domainAllowed = false;
+  } else {
+    domainAllowed = true;
+  }
+
   var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,20})?$/;
   //console.log('email', email)
   if (!emailReg.test(email)) {
@@ -467,13 +491,14 @@ function validation() {
         }
       });
   } else {
+    //////////////////////////////////logic extra validation//////////////////////////////////////////////////
     if ($(steps[x]).data("card")) {
       answer = $(steps[x]).find("[data-go-to]").data("go-to");
       selections = selections.filter((y) => y.step !== x);
       selections.push({ step: x, selected: answer });
     }
 
-    /////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////checkbox validation//////////////////////////////////////
     if (
       $(steps[x])
         .find("[data-answer]:visible")
@@ -534,7 +559,7 @@ function validation() {
       }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////radio input validation////////////////////////////////////////////
     if (
       $(steps[x])
         .find("[data-answer]:visible")
@@ -742,13 +767,14 @@ function validation() {
         }
       });
   }
-  console.log("validating", selections);
+  //console.log('validating', selections)
   //console.log('input',inputFilled,'checkbox',checkboxFilled,'radio',radioFilled,'email',emailFilled)
   if (
     inputFilled &&
     checkboxFilled &&
     radioFilled &&
     emailFilled &&
+    domainAllowed &&
     selectFilled &&
     textareaFilled
   ) {
@@ -782,7 +808,7 @@ function nextStep() {
 function backStep() {
   if (x > 0) {
     $(progressbar[x]).removeClass("current");
-    console.log("curIDX", x, selections.filter((sk) => sk.skipTo === x).length);
+    //console.log('curIDX',x,selections.filter(sk => sk.skipTo === x).length)
     selections.filter((sk) => sk.skipTo === x).length > 0
       ? (x = parseInt(
           getSafe(() => selections.filter((sk) => sk.skipTo === x)[0].backTo)
@@ -867,7 +893,7 @@ $(steps)
 
       selString = [];
       selArr.forEach((sel) => selString.push(sel.selected));
-      console.log("selected array", selString);
+      //console.log('selected array', selString)
 
       $(steps[x])
         .find("[data-answer]:visible")
@@ -875,12 +901,12 @@ $(steps)
         .each(function () {
           if ($(this).data("go-to")) {
             answer = $(this).attr("data-go-to");
-            console.log("radio", answer);
+            //console.log('radio',answer)
             selections = selections.filter((y) => y.step !== x);
             selections.push({ step: x, selected: answer });
-            console.log("selection", skipTo);
+            //console.log('selection', skipTo)
             if (skipTo) {
-              console.log("radio skipping to ", skipTo);
+              //console.log('radio skipping to ', skipTo)
               objIndex = selections.findIndex((obj) => obj.step === x);
               selections[objIndex].skipTo = parseInt(skipTo) - 1;
               selections[objIndex].backTo = x;
@@ -994,6 +1020,20 @@ steps.each(function () {
 progressbar = $('[data-form="progress"]').children();
 $('[data-form="progress-indicator"]').on("click", clickableIndicator);
 updateStep();
+
+$("textarea").keypress(function (event) {
+  $(this).focus();
+  if (event.key == "Enter") {
+    event.preventDefault();
+    if (fill) {
+      $('[data-form="next-btn"]')[0].click();
+    }
+  }
+
+  if (event.shiftKey && event.key == "Enter") {
+    $(this).val($(this).val() + "\n");
+  }
+});
 
 //if(!$('[data-nav-btn]').data('nav-btn')){$('[data-nav-btn]').remove()}
 //if(!$('[data-nav-progress]').data('nav-progress')){$('[data-nav-progress]').remove()}
