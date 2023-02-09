@@ -1,42 +1,45 @@
-//26-1-23 Beta pushed to main
+//9-2-22 Updates
 
-var x = 0;
-var curStep = 0;
-var steps = $('[data-form="step"]');
-var progressbarClone = $('[data-form="progress-indicator"]').clone();
-var progressbar;
-var fill = false;
-var inputFilled = true;
-var selectFilled = true;
-var radioFilled = true;
-var checkboxFilled = true;
-var emailFilled = true;
-var textareaFilled = true;
-var answer = "";
-var selections = [];
-var selection = [];
-var empReqInput = [];
-var empReqSelect = [];
-var empReqTextarea = [];
-var reinitIX = $("[data-reinit]").data("reinit");
-var textareaLength = 0;
-var textInputLength = 0;
-var emailInputLength = 0;
-var selectInputLength = 0;
-var checkboxInputLength = 0;
-var filledInput = [];
-var savedFilledInput = JSON.parse(localStorage.getItem("filledInput"));
-var memory = $("[data-memory]").data("memory");
-var quiz = $("[data-quiz]").data("quiz");
-var progress = 0;
+let x = 0;
+let curStep = 0;
+let steps = $('[data-form="step"]');
+let progressbarClone = $('[data-form="progress-indicator"]').clone();
+let progressbar;
+let fill = false;
+let inputFilled = true;
+let selectFilled = true;
+let radioFilled = true;
+let checkboxFilled = true;
+let emailFilled = true;
+let textareaFilled = true;
+let telFilled = true;
+let answer = "";
+let selections = [];
+let selection = [];
+let empReqInput = [];
+let empReqSelect = [];
+let empReqTextarea = [];
+let empReqTel = [];
+let reinitIX = $("[data-reinit]").data("reinit");
+let textareaLength = 0;
+let textInputLength = 0;
+let emailInputLength = 0;
+let selectInputLength = 0;
+let checkboxInputLength = 0;
+let filledInput = [];
+let savedFilledInput = JSON.parse(localStorage.getItem("filledInput"));
+let memory = $("[data-memory]").data("memory");
+let quiz = $("[data-quiz]").data("quiz");
+let progress = 0;
 const url = new URL(window.location.href);
 let params = $("[data-query-param]").data("query-param");
-var skipTo = 0;
-var next = false;
+let skipTo = 0;
+let next = false;
 let selArr = [];
 let selString = [];
 let emptyInput = 0;
 let searchQ = [];
+let domainAllowed = true;
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -79,6 +82,10 @@ if (savedFilledInput && memory) {
         .addClass("w--redirected-checked");
     } else {
       $(`input[name="${x.inputName}"]`).val(x.value);
+      $(`textarea[name="${x.inputName}"]`).val(x.value);
+      $(`select[name="${x.inputName}"]`)
+        .find(`option[value="${x.value}"]`)
+        .prop("selected", true);
     }
   });
 }
@@ -86,12 +93,12 @@ if (savedFilledInput && memory) {
 if (params) {
   getParams();
   searchQ.forEach((y) => {
-    console.log(y);
+    console.log(y, $(`input[value="${y.val}"]`).attr("type"));
     if (
-      $(`input[name="${y.key}"][value="${x.val}"]`).attr("type") === "radio"
+      $(`input[name="${y.key}"][value="${y.val}"]`).attr("type") === "radio"
     ) {
-      $(`input[name="${y.key}"][value="${x.val}"]`).click();
-      $(`input[name="${y.key}"][value="${x.val}"]`)
+      $(`input[name="${y.key}"][value="${y.val}"]`).click();
+      $(`input[name="${y.key}"][value="${y.val}"]`)
         .siblings(".w-radio-input")
         .addClass("w--redirected-checked");
     } else if (y.val === "on") {
@@ -101,6 +108,10 @@ if (params) {
         .addClass("w--redirected-checked");
     } else {
       $(`input[name="${y.key}"]`).val(y.val);
+      $(`textarea[name="${y.key}"]`).val(y.val);
+      $(`select[name="${y.key}"]`)
+        .find(`option[value="${y.val}"]`)
+        .prop("selected", true);
     }
   });
 }
@@ -218,9 +229,16 @@ function updateStep() {
   textareaFilled = true;
   emailFilled = true;
   emptyInput = 0;
-  // empReqInput = [];
-  // empReqSelect = [];
-  // empReqTextarea = [];
+  empReqInput = [];
+  empReqSelect = [];
+  empReqTextarea = [];
+
+  $("html, body").animate(
+    {
+      scrollTop: $('[data-form="multistep"]').offset().top - 100,
+    },
+    400
+  );
 
   //custom clickable progress indicator
   if ($("[data-clickable]").data("clickable")) {
@@ -260,7 +278,7 @@ function updateStep() {
 
   //conditional logic
   selection = selections.filter((y) => y.step === x - 1);
-  console.log(x, selections, selection);
+  //console.log(x,selections,selection)
   //console.log(selection[0], 'updating steps')
 
   if (next) {
@@ -278,7 +296,11 @@ function updateStep() {
     window.Webflow.destroy();
   }
 
-  $(progressbar[x]).addClass("current");
+  $(progressbar).removeClass("current");
+
+  for (i = 0; i <= x; i++) {
+    $(progressbar[i]).addClass("current");
+  }
   if (reinitIX === true) {
     window.Webflow && window.Webflow.require("ix2").init();
     document.dispatchEvent(new Event("readystatechange"));
@@ -330,6 +352,26 @@ function updateStep() {
 }
 
 function validateEmail(email) {
+  let domainEntered = email.includes("@")
+    ? email.split("@")[1].split(".")[0]
+    : [];
+  let dom = [];
+  let blockedDomain = $("[data-block-domain]").data("block-domain").split(",");
+  $("[data-block-domain]")
+    .data("block-domain")
+    .split(",")
+    .forEach(function (x) {
+      //console.log(x, domainEntered)
+      if (x.includes(domainEntered)) {
+        dom.push(domainEntered);
+      }
+    });
+  if (dom.length > 0) {
+    domainAllowed = false;
+  } else {
+    domainAllowed = true;
+  }
+
   var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,20})?$/;
   //console.log('email', email)
   if (!emailReg.test(email)) {
@@ -422,6 +464,24 @@ function validation() {
       });
 
     $(steps[x])
+      .find(':input[type="tel"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqTel = empReqTel.filter((y) => y.input !== i);
+        } else {
+          if (!empReqTel.find((y) => y.input === i)) {
+            empReqTel.push({ input: i });
+          }
+        }
+
+        if (empReqTel.length === 0) {
+          telFilled = true;
+        } else {
+          telFilled = false;
+        }
+      });
+
+    $(steps[x])
       .find("select[required]")
       .each(function (i) {
         if ($(this).val() !== "") {
@@ -467,13 +527,14 @@ function validation() {
         }
       });
   } else {
+    //////////////////////////////////logic extra validation//////////////////////////////////////////////////
     if ($(steps[x]).data("card")) {
       answer = $(steps[x]).find("[data-go-to]").data("go-to");
       selections = selections.filter((y) => y.step !== x);
       selections.push({ step: x, selected: answer });
     }
 
-    /////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////checkbox validation//////////////////////////////////////
     if (
       $(steps[x])
         .find("[data-answer]:visible")
@@ -534,7 +595,7 @@ function validation() {
       }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////radio input validation////////////////////////////////////////////
     if (
       $(steps[x])
         .find("[data-answer]:visible")
@@ -578,6 +639,45 @@ function validation() {
     $(steps[x])
       .find("[data-answer]:visible")
       .find(':input[type="text"]')
+      .each(function (i) {
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+        }
+        if ($(this).parents("[data-go-to]").attr("data-go-to")) {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
+        }
+      });
+
+    ////////////////////////////phone input validation/////////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="tel"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqTel = empReqTel.filter((y) => y.input !== i);
+        } else {
+          if (!empReqTel.find((y) => y.input === i)) {
+            empReqTel.push({ input: i });
+          }
+        }
+
+        if (empReqTel.length === 0) {
+          telFilled = true;
+        } else {
+          telFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="tel"]')
       .each(function (i) {
         if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
           skipTo = $(this).parents("[data-skip-to]").data("skip-to");
@@ -742,13 +842,15 @@ function validation() {
         }
       });
   }
-  console.log("validating", selections);
+  //console.log('validating', selections)
   //console.log('input',inputFilled,'checkbox',checkboxFilled,'radio',radioFilled,'email',emailFilled)
   if (
     inputFilled &&
     checkboxFilled &&
+    telFilled &&
     radioFilled &&
     emailFilled &&
+    domainAllowed &&
     selectFilled &&
     textareaFilled
   ) {
@@ -782,7 +884,7 @@ function nextStep() {
 function backStep() {
   if (x > 0) {
     $(progressbar[x]).removeClass("current");
-    console.log("curIDX", x, selections.filter((sk) => sk.skipTo === x).length);
+    //console.log('curIDX',x,selections.filter(sk => sk.skipTo === x).length)
     selections.filter((sk) => sk.skipTo === x).length > 0
       ? (x = parseInt(
           getSafe(() => selections.filter((sk) => sk.skipTo === x)[0].backTo)
@@ -867,7 +969,7 @@ $(steps)
 
       selString = [];
       selArr.forEach((sel) => selString.push(sel.selected));
-      console.log("selected array", selString);
+      //console.log('selected array', selString)
 
       $(steps[x])
         .find("[data-answer]:visible")
@@ -875,12 +977,12 @@ $(steps)
         .each(function () {
           if ($(this).data("go-to")) {
             answer = $(this).attr("data-go-to");
-            console.log("radio", answer);
+            //console.log('radio',answer)
             selections = selections.filter((y) => y.step !== x);
             selections.push({ step: x, selected: answer });
-            console.log("selection", skipTo);
+            //console.log('selection', skipTo)
             if (skipTo) {
-              console.log("radio skipping to ", skipTo);
+              //console.log('radio skipping to ', skipTo)
               objIndex = selections.findIndex((obj) => obj.step === x);
               selections[objIndex].skipTo = parseInt(skipTo) - 1;
               selections[objIndex].backTo = x;
@@ -965,7 +1067,7 @@ $('[data-form="submit-btn"]').on("click", function (e) {
 
   if ($('[data-form="multistep"]').data("logic-extra")) {
     if (
-      curStep === $('[data-form="step"]:not([data-card="true"])').length ||
+      x === $('[data-form="step"]:not([data-card="true"])').length ||
       $(steps[x]).find('[data-form="submit"]:visible').length > 0
     ) {
       $(this).prop("novalidate", true);
@@ -994,6 +1096,22 @@ steps.each(function () {
 progressbar = $('[data-form="progress"]').children();
 $('[data-form="progress-indicator"]').on("click", clickableIndicator);
 updateStep();
+
+$("textarea").keypress(function (event) {
+  $(this).focus();
+  if (event.key == "Enter") {
+    event.preventDefault();
+    event.stopPropagation();
+    // console.log('enter pressed on textarea')
+    // if(fill){
+    // $('[data-form="next-btn"]')[0].click();
+    // }
+  }
+
+  if (event.shiftKey && event.key == "Enter") {
+    $(this).val($(this).val() + "\n");
+  }
+});
 
 //if(!$('[data-nav-btn]').data('nav-btn')){$('[data-nav-btn]').remove()}
 //if(!$('[data-nav-progress]').data('nav-progress')){$('[data-nav-progress]').remove()}
