@@ -1,38 +1,40 @@
-//7-2-22 Text area update
+//9-2-22
 
-var x = 0;
-var curStep = 0;
-var steps = $('[data-form="step"]');
-var progressbarClone = $('[data-form="progress-indicator"]').clone();
-var progressbar;
-var fill = false;
-var inputFilled = true;
-var selectFilled = true;
-var radioFilled = true;
-var checkboxFilled = true;
-var emailFilled = true;
-var textareaFilled = true;
-var answer = "";
-var selections = [];
-var selection = [];
-var empReqInput = [];
-var empReqSelect = [];
-var empReqTextarea = [];
-var reinitIX = $("[data-reinit]").data("reinit");
-var textareaLength = 0;
-var textInputLength = 0;
-var emailInputLength = 0;
-var selectInputLength = 0;
-var checkboxInputLength = 0;
-var filledInput = [];
-var savedFilledInput = JSON.parse(localStorage.getItem("filledInput"));
-var memory = $("[data-memory]").data("memory");
-var quiz = $("[data-quiz]").data("quiz");
-var progress = 0;
+let x = 0;
+let curStep = 0;
+let steps = $('[data-form="step"]');
+let progressbarClone = $('[data-form="progress-indicator"]').clone();
+let progressbar;
+let fill = false;
+let inputFilled = true;
+let selectFilled = true;
+let radioFilled = true;
+let checkboxFilled = true;
+let emailFilled = true;
+let textareaFilled = true;
+let telFilled = true;
+let answer = "";
+let selections = [];
+let selection = [];
+let empReqInput = [];
+let empReqSelect = [];
+let empReqTextarea = [];
+let empReqTel = [];
+let reinitIX = $("[data-reinit]").data("reinit");
+let textareaLength = 0;
+let textInputLength = 0;
+let emailInputLength = 0;
+let selectInputLength = 0;
+let checkboxInputLength = 0;
+let filledInput = [];
+let savedFilledInput = JSON.parse(localStorage.getItem("filledInput"));
+let memory = $("[data-memory]").data("memory");
+let quiz = $("[data-quiz]").data("quiz");
+let progress = 0;
 const url = new URL(window.location.href);
 let params = $("[data-query-param]").data("query-param");
-var skipTo = 0;
-var next = false;
+let skipTo = 0;
+let next = false;
 let selArr = [];
 let selString = [];
 let emptyInput = 0;
@@ -80,7 +82,10 @@ if (savedFilledInput && memory) {
         .addClass("w--redirected-checked");
     } else {
       $(`input[name="${x.inputName}"]`).val(x.value);
-      $(`textarea[name="${y.key}"]`).val(y.val);
+      $(`textarea[name="${x.inputName}"]`).val(x.value);
+      $(`select[name="${x.inputName}"]`)
+        .find(`option[value="${x.value}"]`)
+        .prop("selected", true);
     }
   });
 }
@@ -92,7 +97,6 @@ if (params) {
     if (
       $(`input[name="${y.key}"][value="${y.val}"]`).attr("type") === "radio"
     ) {
-      console.log("radio");
       $(`input[name="${y.key}"][value="${y.val}"]`).click();
       $(`input[name="${y.key}"][value="${y.val}"]`)
         .siblings(".w-radio-input")
@@ -105,6 +109,9 @@ if (params) {
     } else {
       $(`input[name="${y.key}"]`).val(y.val);
       $(`textarea[name="${y.key}"]`).val(y.val);
+      $(`select[name="${y.key}"]`)
+        .find(`option[value="${y.val}"]`)
+        .prop("selected", true);
     }
   });
 }
@@ -226,6 +233,13 @@ function updateStep() {
   empReqSelect = [];
   empReqTextarea = [];
 
+  $("html, body").animate(
+    {
+      scrollTop: $('[data-form="multistep"]').offset().top - 100,
+    },
+    400
+  );
+
   //custom clickable progress indicator
   if ($("[data-clickable]").data("clickable")) {
     console.log("clickable indicator");
@@ -282,7 +296,11 @@ function updateStep() {
     window.Webflow.destroy();
   }
 
-  $(progressbar[x]).addClass("current");
+  $(progressbar).removeClass("current");
+
+  for (i = 0; i <= x; i++) {
+    $(progressbar[i]).addClass("current");
+  }
   if (reinitIX === true) {
     window.Webflow && window.Webflow.require("ix2").init();
     document.dispatchEvent(new Event("readystatechange"));
@@ -442,6 +460,24 @@ function validation() {
           inputFilled = true;
         } else {
           inputFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find(':input[type="tel"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqTel = empReqTel.filter((y) => y.input !== i);
+        } else {
+          if (!empReqTel.find((y) => y.input === i)) {
+            empReqTel.push({ input: i });
+          }
+        }
+
+        if (empReqTel.length === 0) {
+          telFilled = true;
+        } else {
+          telFilled = false;
         }
       });
 
@@ -619,6 +655,45 @@ function validation() {
         }
       });
 
+    ////////////////////////////phone input validation/////////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="tel"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqTel = empReqTel.filter((y) => y.input !== i);
+        } else {
+          if (!empReqTel.find((y) => y.input === i)) {
+            empReqTel.push({ input: i });
+          }
+        }
+
+        if (empReqTel.length === 0) {
+          telFilled = true;
+        } else {
+          telFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="tel"]')
+      .each(function (i) {
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+        }
+        if ($(this).parents("[data-go-to]").attr("data-go-to")) {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
+        }
+      });
+
     ////////////////////////////number input validation/////////////////////////////////////
     $(steps[x])
       .find("[data-answer]:visible")
@@ -772,6 +847,7 @@ function validation() {
   if (
     inputFilled &&
     checkboxFilled &&
+    telFilled &&
     radioFilled &&
     emailFilled &&
     domainAllowed &&
@@ -991,7 +1067,7 @@ $('[data-form="submit-btn"]').on("click", function (e) {
 
   if ($('[data-form="multistep"]').data("logic-extra")) {
     if (
-      curStep === $('[data-form="step"]:not([data-card="true"])').length ||
+      x === $('[data-form="step"]:not([data-card="true"])').length ||
       $(steps[x]).find('[data-form="submit"]:visible').length > 0
     ) {
       $(this).prop("novalidate", true);
@@ -1025,9 +1101,11 @@ $("textarea").keypress(function (event) {
   $(this).focus();
   if (event.key == "Enter") {
     event.preventDefault();
-    if (fill) {
-      $('[data-form="next-btn"]')[0].click();
-    }
+    event.stopPropagation();
+    // console.log('enter pressed on textarea')
+    // if(fill){
+    // $('[data-form="next-btn"]')[0].click();
+    // }
   }
 
   if (event.shiftKey && event.key == "Enter") {
