@@ -1,4 +1,4 @@
-//9-2-22 Updates
+// 10-2-22 update
 
 let x = 0;
 let curStep = 0;
@@ -235,7 +235,7 @@ function updateStep() {
 
   $("html, body").animate(
     {
-      scrollTop: $('[data-form="multistep"]').offset().top - 100,
+      scrollTop: $('[data-form="multistep"]').offset().top - 300,
     },
     400
   );
@@ -356,7 +356,11 @@ function validateEmail(email) {
     ? email.split("@")[1].split(".")[0]
     : [];
   let dom = [];
-  let blockedDomain = $("[data-block-domain]").data("block-domain").split(",");
+  let blockedDomain = $("[data-block-domain]")
+    .data("block-domain")
+    .includes(",")
+    ? $("[data-block-domain]").data("block-domain").split(",")
+    : [];
   $("[data-block-domain]")
     .data("block-domain")
     .split(",")
