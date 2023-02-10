@@ -1,4 +1,4 @@
-// 10-2-22 update
+//10-2-22
 
 let x = 0;
 let curStep = 0;
@@ -40,6 +40,7 @@ let selString = [];
 let emptyInput = 0;
 let searchQ = [];
 let domainAllowed = true;
+let dom = [];
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
@@ -233,12 +234,9 @@ function updateStep() {
   empReqSelect = [];
   empReqTextarea = [];
 
-  $("html, body").animate(
-    {
-      scrollTop: $('[data-form="multistep"]').offset().top - 300,
-    },
-    400
-  );
+  /*$('html, body').animate({
+    scrollTop: $('[data-form="multistep"]').offset().top - 300
+  },400);*/
 
   //custom clickable progress indicator
   if ($("[data-clickable]").data("clickable")) {
@@ -278,8 +276,6 @@ function updateStep() {
 
   //conditional logic
   selection = selections.filter((y) => y.step === x - 1);
-  //console.log(x,selections,selection)
-  //console.log(selection[0], 'updating steps')
 
   if (next) {
     x = getSafe(() => selection[0]["skipTo"])
@@ -317,7 +313,6 @@ function updateStep() {
     $(steps[x]).find(`[data-answer="${selection[0].selected}"]`).show();
   } else {
     $(steps[x]).find(`[data-answer="${answer}"]`).show();
-    //console.log($(steps[x]).find(`[data-answer="${answer}"]`).find(':input'))
   }
 
   //hide unhide button
@@ -340,8 +335,6 @@ function updateStep() {
   //focus first input in every step
   $($(steps[x]).find("input[autofocus]")[0]).focus();
   $($(steps[x]).find("textarea[autofocus]")[0]).focus();
-
-  //$(steps[x]).find(':input').trigger('input');
   validation();
 
   for (idx = 0; idx <= progress; idx++) {
@@ -351,25 +344,19 @@ function updateStep() {
   }
 }
 
-function validateEmail(email) {
+function validateEmail(email, blockDomain) {
   let domainEntered = email.includes("@")
     ? email.split("@")[1].split(".")[0]
     : [];
-  let dom = [];
-  let blockedDomain = $("[data-block-domain]")
-    .data("block-domain")
-    .includes(",")
-    ? $("[data-block-domain]").data("block-domain").split(",")
-    : [];
-  $("[data-block-domain]")
-    .data("block-domain")
-    .split(",")
-    .forEach(function (x) {
-      //console.log(x, domainEntered)
+  dom = [];
+  if (blockDomain !== undefined) {
+    blockDomain.split(",").forEach(function (x) {
       if (x.includes(domainEntered)) {
         dom.push(domainEntered);
       }
     });
+  }
+
   if (dom.length > 0) {
     domainAllowed = false;
   } else {
@@ -377,7 +364,6 @@ function validateEmail(email) {
   }
 
   var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,20})?$/;
-  //console.log('email', email)
   if (!emailReg.test(email)) {
     emailFilled = false;
   } else {
@@ -525,7 +511,7 @@ function validation() {
       .find(':input[type="email"][required]')
       .each(function () {
         if ($(this).val() !== "") {
-          validateEmail($(this).val());
+          validateEmail($(this).val(), $(this).data("block-domain"));
         } else {
           emailFilled = false;
         }
@@ -821,7 +807,7 @@ function validation() {
       .find(':input[type="email"][required]')
       .each(function (m) {
         if ($(this).val() !== "") {
-          validateEmail($(this).val());
+          validateEmail($(this).val(), $(this).data("block-domain"));
         } else {
           emailFilled = false;
         }
@@ -846,8 +832,7 @@ function validation() {
         }
       });
   }
-  //console.log('validating', selections)
-  //console.log('input',inputFilled,'checkbox',checkboxFilled,'radio',radioFilled,'email',emailFilled)
+
   if (
     inputFilled &&
     checkboxFilled &&
