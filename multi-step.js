@@ -1,5 +1,4 @@
 //15-2-22 13:25
-
 let x = 0;
 let curStep = 0;
 let steps = $('[data-form="step"]');
