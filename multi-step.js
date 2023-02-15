@@ -1,5 +1,4 @@
-//15-2-22 Update 9:17am GMT
-
+//15-2-22 13:25
 let x = 0;
 let curStep = 0;
 let steps = $('[data-form="step"]');
@@ -236,7 +235,6 @@ function scrollTop() {
 }
 
 function updateStep() {
-  console.log("updating step");
   inputFilled = true;
   radioFilled = true;
   checkboxFilled = true;
@@ -1078,14 +1076,10 @@ $('[data-form="submit-btn"]').on("click", function (e) {
   //console.log('form is being submitted')
 
   if ($('[data-form="multistep"]').data("logic-extra")) {
-    if (
-      x === $('[data-form="step"]:not([data-card="true"])').length ||
-      $(steps[x]).find('[data-form="submit"]:visible').length > 0
-    ) {
-      $(this).prop("novalidate", true);
-      $(steps).find(":input").prop("required", false);
-      console.log("nonvalidated");
-    }
+    //if(x === $('[data-form="step"]:not([data-card="true"])').length || $(steps[x]).find('[data-form="submit"]:visible').length > 0){
+    $(this).prop("novalidate", true);
+    $(steps).find(":input").prop("required", false);
+    console.log("nonvalidated");
   }
 
   //function to remove unanswered card
