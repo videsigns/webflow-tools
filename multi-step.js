@@ -1,4 +1,5 @@
-//15-2-22 13:25
+//16-2-23 9:36am GMT+0
+
 let x = 0;
 let curStep = 0;
 let steps = $('[data-form="step"]');
@@ -51,7 +52,7 @@ $(steps[x]).data("card") ? (curStep = curStep + 0) : (curStep = curStep + 1);
 $('[data-text="current-step"]').text(curStep);
 steps.hide();
 
-$('input[type="submit"]').each(function () {
+$('[data-form="next-btn"][type="submit"]').each(function () {
   $(this).attr("type", "button");
 });
 
