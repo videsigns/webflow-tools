@@ -31,7 +31,7 @@ let savedFilledInput = JSON.parse(localStorage.getItem("filledInput"));
 let memory = $("[data-memory]").data("memory");
 let quiz = $("[data-quiz]").data("quiz");
 let progress = 0;
-const url = new URL(window.location.href);
+const urlFormly = new URL(window.location.href);
 let params = $("[data-query-param]").data("query-param");
 let skipTo = 0;
 let next = false;
@@ -57,7 +57,7 @@ $('[data-form="next-btn"][type="submit"]').each(function () {
 });
 
 function getParams() {
-  url.searchParams.forEach(function (val, key) {
+  urlFormly.searchParams.forEach(function (val, key) {
     searchQ.push({ val, key });
   });
 }
@@ -215,9 +215,9 @@ function saveFilledInput() {
   if (filledInput) {
     filledInput.forEach((x) => {
       //console.log(x)
-      url.searchParams.delete(x.inputName);
-      url.searchParams.set(x.inputName, x.value);
-      window.history.replaceState(null, null, url); // or pushState
+      urlFormly.searchParams.delete(x.inputName);
+      urlFormly.searchParams.set(x.inputName, x.value);
+      window.history.replaceState(null, null, urlFormly); // or pushState
     });
   }
 
