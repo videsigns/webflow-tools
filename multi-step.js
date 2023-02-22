@@ -1,4 +1,4 @@
-//18-2-23 Update 11am GMT+0
+//22-2-23 Update
 
 let x = 0;
 let curStep = 0;
@@ -13,12 +13,14 @@ let checkboxFilled = true;
 let emailFilled = true;
 let textareaFilled = true;
 let telFilled = true;
+let fileFilled = true;
 let answer = "";
 let selections = [];
 let selection = [];
 let empReqInput = [];
 let empReqSelect = [];
 let empReqTextarea = [];
+let empReqfile = [];
 let empReqTel = [];
 let reinitIX = $("[data-reinit]").data("reinit");
 let textareaLength = 0;
@@ -44,11 +46,9 @@ let dom = [];
 
 $(progressbarClone).removeClass("current");
 $('[data-form="progress"]').children().remove();
-$('[data-text="total-steps"]').text(
-  $('[data-form="step"]:not([data-card="true"])').length
-);
+$('[data-text="total-steps"]').text(steps.length);
 $('[data-form="submit-btn"]').hide();
-$(steps[x]).data("card") ? (curStep = curStep + 0) : (curStep = curStep + 1);
+curStep = curStep + 1;
 $('[data-text="current-step"]').text(curStep);
 steps.hide();
 
@@ -481,6 +481,24 @@ function validation() {
       });
 
     $(steps[x])
+      .find(':input[type="file"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqFile = empReqFile.filter((y) => y.input !== i);
+        } else {
+          if (!empReqFile.find((y) => y.input === i)) {
+            empReqFile.push({ input: i });
+          }
+        }
+
+        if (empReqFile.length === 0) {
+          fileFilled = true;
+        } else {
+          fileFilled = false;
+        }
+      });
+
+    $(steps[x])
       .find("select[required]")
       .each(function (i) {
         if ($(this).val() !== "") {
@@ -679,6 +697,47 @@ function validation() {
     $(steps[x])
       .find("[data-answer]:visible")
       .find(':input[type="tel"]')
+      .each(function (i) {
+        skipTo = undefined;
+        if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
+          skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+        }
+        if ($(this).parents("[data-go-to]").attr("data-go-to")) {
+          answer = $(this).parents("[data-go-to]").attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            selections.push({ step: skipTo - 2, selected: answer });
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
+        }
+      });
+
+    ////////////////////////////file input validation/////////////////////////////////////
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="file"][required]')
+      .each(function (i) {
+        if ($(this).val() !== "") {
+          empReqfile = empReqfile.filter((y) => y.input !== i);
+        } else {
+          if (!empReqfile.find((y) => y.input === i)) {
+            empReqfile.push({ input: i });
+          }
+        }
+
+        if (empReqfile.length === 0) {
+          fileFilled = true;
+        } else {
+          fileFilled = false;
+        }
+      });
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(':input[type="file"]')
       .each(function (i) {
         skipTo = undefined;
         if ($(this).parents("[data-skip-to]").data("skip-to") !== "") {
@@ -1065,12 +1124,6 @@ if ($('[data-form="multistep"]').data("debug-mode")) {
 
 $('[data-form="submit-btn"]').on("click", function (e) {
   console.log("clicked submit");
-  if ($(this).data("wait")) {
-    $(this).val($(this).data("wait"));
-  } else {
-    $(this).val("Please wait...");
-    $(this).text("Please wait...");
-  }
 
   e.preventDefault();
   e.stopPropagation();
@@ -1095,7 +1148,15 @@ $('[data-form="submit-btn"]').on("click", function (e) {
   }
 
   localStorage.removeItem("filledInput");
-  $('[data-form="multistep"]').submit();
+  if (fill) {
+    if ($(this).data("wait")) {
+      $(this).val($(this).data("wait"));
+    } else {
+      $(this).val("Please wait...");
+      $(this).text("Please wait...");
+    }
+    $('[data-form="multistep"]').submit();
+  }
 });
 
 steps.each(function () {
