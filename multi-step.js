@@ -998,14 +998,14 @@ function selectionQuiz() {
 }
 
 $('[data-form="next-btn"]').on("click", function () {
-  scrollTop();
+  //scrollTop();
   next = true;
   nextStep();
   selectionQuiz();
 });
 
 $('[data-form="back-btn"]').on("click", function () {
-  scrollTop();
+  //scrollTop();
   next = false;
   backStep();
 });
