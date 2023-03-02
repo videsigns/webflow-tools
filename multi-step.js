@@ -226,14 +226,14 @@ function saveFilledInput() {
   //console.log(savedFilledInput)
 }
 
-function scrollTop() {
+/* function scrollTop() {
   $("html, body").animate(
     {
       scrollTop: $('[data-form="multistep"]').offset().top - 300,
     },
     400
   );
-}
+}*/
 
 function updateStep() {
   inputFilled = true;
