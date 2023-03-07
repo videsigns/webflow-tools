@@ -1,4 +1,4 @@
-//22-2-23 Update Push
+//7-3-23 update
 
 let x = 0;
 let curStep = 0;
@@ -37,6 +37,7 @@ const urlFormly = new URL(window.location.href);
 let params = $("[data-query-param]").data("query-param");
 let skipTo = 0;
 let next = false;
+let back = false;
 let selArr = [];
 let selString = [];
 let emptyInput = 0;
@@ -226,14 +227,14 @@ function saveFilledInput() {
   //console.log(savedFilledInput)
 }
 
-/* function scrollTop() {
-  $("html, body").animate(
-    {
-      scrollTop: $('[data-form="multistep"]').offset().top - 300,
-    },
-    400
-  );
-}*/
+function scrollTop() {
+  //scroll to top of page
+  /*$('html, body').animate({
+    scrollTop: $('[data-form="multistep"]').offset().top - 300
+  },400);*/
+  //scroll to top of form
+  //$('[data-form="multistep"]').scrollTop(0);
+}
 
 function updateStep() {
   inputFilled = true;
@@ -250,28 +251,16 @@ function updateStep() {
 
   //custom clickable progress indicator
   if ($("[data-clickable]").data("clickable")) {
-    console.log("clickable indicator");
+    //console.log('clickable indicator')
     steps.find(":input[required]").each(function () {
       $(
         $('[data-form="custom-progress-indicator"]')[
           $(this).parents('[data-form="step"]').index()
         ]
-      ).text(
-        $(
-          $('[data-form="custom-progress-indicator"]')[
-            $(this).parents('[data-form="step"]').index()
-          ]
-        )
-          .text()
-          .replace("*", "")
       );
       if ($(this).val() === "") {
         emptyInput++;
-        $(
-          $('[data-form="custom-progress-indicator"]')[
-            $(this).parents('[data-form="step"]').index()
-          ]
-        ).append("*");
+        //$($('[data-form="custom-progress-indicator"]')[$(this).parents('[data-form="step"]').index()]).append('*')
       }
     });
     if (emptyInput > 0) {
@@ -913,6 +902,72 @@ function validation() {
       });
   }
 
+  if ($(steps[x]).find(":input").is(":checked")) {
+    skipTo = undefined;
+    if ($(this).parents("[data-skip-to]").data("skip-to")) {
+      skipTo = $(this).parents("[data-skip-to]").data("skip-to");
+    } else if ($(this).data("skip-to")) {
+      skipTo = $(this).data("skip-to");
+    }
+
+    selArr = [];
+    $(steps)
+      .find("[data-selected]:checked")
+      .each(function (y, i) {
+        selArr.push({ selected: $(this).data("selected") });
+      });
+
+    selString = [];
+    selArr.forEach((sel) => selString.push(sel.selected));
+
+    $(steps[x])
+      .find("[data-answer]:visible")
+      .find(":input[type='radio']:checked")
+      .each(function () {
+        if ($(this).data("go-to")) {
+          answer = $(this).attr("data-go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            selections.push({ step: skipTo - 2, selected: answer });
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
+        } else if ($(this).parents("[data-go-to]").data("go-to")) {
+          answer = $(this).parents("[data-go-to]").data("go-to");
+          selections = selections.filter((y) => y.step !== x);
+          selections.push({ step: x, selected: answer });
+          if (skipTo) {
+            selections.push({ step: skipTo - 2, selected: answer });
+            objIndex = selections.findIndex((obj) => obj.step === x);
+            selections[objIndex].skipTo = parseInt(skipTo) - 1;
+            selections[objIndex].backTo = x;
+          }
+        }
+      });
+
+    if (
+      $(steps[x]).find("[data-radio-skip]:visible").data("radio-skip") === true
+    ) {
+      if (!back) {
+        if (
+          textareaLength === 0 &&
+          textInputLength === 0 &&
+          emailInputLength === 0 &&
+          checkboxInputLength === 0
+        ) {
+          setTimeout(function () {
+            next = true;
+            nextStep();
+            selectionQuiz();
+          }, $(steps[x]).find("[data-radio-delay]").data("radio-delay"));
+        }
+      }
+    }
+    console.log(selections);
+  }
+
   if (
     inputFilled &&
     checkboxFilled &&
@@ -998,16 +1053,19 @@ function selectionQuiz() {
 }
 
 $('[data-form="next-btn"]').on("click", function () {
-  //scrollTop();
+  scrollTop();
   next = true;
+  back = false;
   nextStep();
   selectionQuiz();
 });
 
 $('[data-form="back-btn"]').on("click", function () {
-  //scrollTop();
+  scrollTop();
   next = false;
+  back = true;
   backStep();
+  back = false;
 });
 
 $(steps)
@@ -1016,74 +1074,7 @@ $(steps)
     validation();
   });
 
-$(steps)
-  .find(":radio")
-  .on("click", function () {
-    if ($(steps[x]).find(":input").is(":checked")) {
-      skipTo = undefined;
-      if ($(this).parents("[data-skip-to]").data("skip-to")) {
-        skipTo = $(this).parents("[data-skip-to]").data("skip-to");
-      } else if ($(this).data("skip-to")) {
-        skipTo = $(this).data("skip-to");
-      }
-
-      selArr = [];
-      $(steps)
-        .find("[data-selected]:checked")
-        .each(function (y, i) {
-          selArr.push({ selected: $(this).data("selected") });
-        });
-
-      selString = [];
-      selArr.forEach((sel) => selString.push(sel.selected));
-
-      $(steps[x])
-        .find("[data-answer]:visible")
-        .find(":input[type='radio']:checked")
-        .each(function () {
-          if ($(this).data("go-to")) {
-            answer = $(this).attr("data-go-to");
-            selections = selections.filter((y) => y.step !== x);
-            selections.push({ step: x, selected: answer });
-            if (skipTo) {
-              selections.push({ step: skipTo - 2, selected: answer });
-              objIndex = selections.findIndex((obj) => obj.step === x);
-              selections[objIndex].skipTo = parseInt(skipTo) - 1;
-              selections[objIndex].backTo = x;
-            }
-          } else if ($(this).parents("[data-go-to]").data("go-to")) {
-            answer = $(this).parents("[data-go-to]").data("go-to");
-            selections = selections.filter((y) => y.step !== x);
-            selections.push({ step: x, selected: answer });
-            if (skipTo) {
-              selections.push({ step: skipTo - 2, selected: answer });
-              objIndex = selections.findIndex((obj) => obj.step === x);
-              selections[objIndex].skipTo = parseInt(skipTo) - 1;
-              selections[objIndex].backTo = x;
-            }
-          }
-        });
-
-      if (
-        $(steps[x]).find("[data-radio-skip]:visible").data("radio-skip") ===
-        true
-      ) {
-        if (
-          textareaLength === 0 &&
-          textInputLength === 0 &&
-          emailInputLength === 0 &&
-          checkboxInputLength === 0
-        ) {
-          setTimeout(function () {
-            next = true;
-            nextStep();
-            selectionQuiz();
-          }, $(steps[x]).find("[data-radio-delay]").data("radio-delay"));
-        }
-      }
-      console.log(selections);
-    }
-  });
+$(steps).find(":radio").on("click", validation());
 
 ////////////////////////////custom indicator nav
 if ($("[data-clickable-all]").data("clickable-all")) {
