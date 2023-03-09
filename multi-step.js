@@ -1198,8 +1198,8 @@ $('[data-form="submit-btn"]').on("click", function (e) {
       $(this).text("Please wait...");
     }
     //$('[data-form="multistep"]').submit();
-    
-    //new addition 9-3-23s
+
+    //new addition 9-3-23
     $('[data-form="multistep"]').submit(() => {
       console.log("Submitted");
       return true;
