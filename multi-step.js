@@ -1197,7 +1197,13 @@ $('[data-form="submit-btn"]').on("click", function (e) {
       $(this).val("Please wait...");
       $(this).text("Please wait...");
     }
-    $('[data-form="multistep"]').submit();
+    //$('[data-form="multistep"]').submit();
+    
+    //new addition 9-3-23s
+    $('[data-form="multistep"]').submit(() => {
+      console.log("Submitted");
+      return true;
+    });
   }
 });
 
