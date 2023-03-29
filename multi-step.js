@@ -1,4 +1,4 @@
-//29-03-2023 update
+//29-03-2023
 
 const _0xba1d8c = _0xa83c;
 (function (_0x5152e9, _0x436bdd) {
