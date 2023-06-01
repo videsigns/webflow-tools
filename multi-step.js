@@ -419,14 +419,14 @@ function saveFilledInput() {
     localStorage["setItem"]("filledInput", JSON[_0x2cc212(0x1b7)](filledInput));
 }
 function scrollTop() {
-  const _0x23bd4e = _0x129ed0;
-  $(_0x23bd4e(0x1e4))[_0x23bd4e(0x1f2)](
-    {
-      scrollTop:
-        $(_0x23bd4e(0x1bf))[_0x23bd4e(0x1d0)]()[_0x23bd4e(0x1ed)] - 0x12c,
-    },
-    0x190
-  );
+  // const _0x23bd4e = _0x129ed0;
+  // $(_0x23bd4e(0x1e4))[_0x23bd4e(0x1f2)](
+  //   {
+  //     scrollTop:
+  //       $(_0x23bd4e(0x1bf))[_0x23bd4e(0x1d0)]()[_0x23bd4e(0x1ed)] - 0x12c,
+  //   },
+  //   0x190
+  // );
 }
 function updateStep() {
   const _0x57ccaf = _0x129ed0;
