@@ -1,4 +1,4 @@
-//1/6/23 update disabled scroll top
+//4/6/23 patch: disabled scroll top
 
 const _0x129ed0 = _0x8b10;
 (function (_0x16d5f0, _0x3fe5a2) {
