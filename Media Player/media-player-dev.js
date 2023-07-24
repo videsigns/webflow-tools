@@ -54,9 +54,11 @@ function initializeVideoPlayer(video) {
   const previewOffsetLeft = wrapper.querySelector(
     "[f-data-video-preview-offset-left]"
   )
-    ? wrapper
-        .querySelector("[f-data-video-preview-offset-left]")
-        .getAttribute("f-data-video-preview-offset-left")
+    ? Number(
+        wrapper
+          .querySelector("[f-data-video-preview-offset-left]")
+          .getAttribute("f-data-video-preview-offset-left")
+      )
     : "";
 
   function formatTime(time) {
@@ -390,7 +392,7 @@ function initializeVideoPlayer(video) {
     volumeSlider.addEventListener("input", handleVolumeSliderInput);
   }
   if (progressBar) {
-    progressBar.addEventListener("mouseover", handleProgressBarHover);
+    progressBar.addEventListener("mousemove", handleProgressBarHover);
   }
   if (progressBar) {
     progressBar.addEventListener("mouseout", handleProgressBarHoverOut);
@@ -1255,4 +1257,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 });
+
 ////////////////////////////////END OF VIMEO///////////////////////////
