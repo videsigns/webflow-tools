@@ -22,6 +22,7 @@ function initializeVideoPlayer(video) {
   const posterBtn = wrapper.querySelector('[f-data-video="poster-button"]');
   const poster = wrapper.querySelector('[f-data-video="overlay"]');
   const posterBg = wrapper.querySelector('[f-data-video="poster"]');
+  const keyboardShortcuts = wrapper.getAttribute("f-data-video-shortcut");
   const playBtn = wrapper.querySelector('[f-data-video="play-button"]');
   const pauseBtn = wrapper.querySelector('[f-data-video="pause-button"]');
   const forwardBtn = wrapper.querySelector('[f-data-video="forward-button"]');
@@ -31,6 +32,7 @@ function initializeVideoPlayer(video) {
   const playIcon = wrapper.querySelector('[f-data-video="play-icon"]');
   const progress = wrapper.querySelector('[f-data-video="progress"]');
   const progressBar = wrapper.querySelector('[f-data-video="progress-bar"]');
+  const videoLoading = wrapper.querySelector('[f-data-video="loading"]');
   const fullscreenBtn = wrapper.querySelector('[f-data-video="fullscreen"]');
   const minimizeBtn = wrapper.querySelector('[f-data-video="minimize"]');
   const currentTime = wrapper.querySelector('[f-data-video="current-time"]');
@@ -212,11 +214,21 @@ function initializeVideoPlayer(video) {
     playVideo();
   }
 
+  function updateLoadingProgress(e) {
+    if (video.buffered.length > 0) {
+      const bufferedEnd = e.target.buffered.end(e.target.buffered.length - 1); // Get the end time of the buffered range
+      const bufferedPercentage = (bufferedEnd / video.duration) * 100;
+      videoLoading.style.width = `${bufferedPercentage}%`;
+    }
+  }
+
   function handleProgressBarClick(e) {
     // Handle click on progress bar to seek
     const x = e.pageX - progressBar.getBoundingClientRect().left;
     const clickedTime = (x * video.duration) / progressBar.offsetWidth;
+
     video.currentTime = clickedTime;
+    //updateLoadingProgress();
   }
 
   function handlePlaybackSpeed(speed) {
@@ -292,58 +304,60 @@ function initializeVideoPlayer(video) {
 
   // Keyboard controls
   function handleKeyboardControls(event) {
-    const key = event.key.toLowerCase();
-    if (key === " " || key === "arrowdown" || key === "arrowup") {
-      event.preventDefault();
-    }
-    if (!video.paused) {
-      switch (key) {
-        case "0":
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-        case "6":
-        case "7":
-        case "8":
-        case "9": {
-          const percentage = parseInt(key) * 10;
-          const seekTime = (percentage / 100) * video.duration;
-          video.currentTime = seekTime;
-          break;
+    if (keyboardShortcuts) {
+      const key = event.key.toLowerCase();
+      if (key === " " || key === "arrowdown" || key === "arrowup") {
+        event.preventDefault();
+      }
+      if (!video.paused) {
+        switch (key) {
+          case "0":
+          case "1":
+          case "2":
+          case "3":
+          case "4":
+          case "5":
+          case "6":
+          case "7":
+          case "8":
+          case "9": {
+            const percentage = parseInt(key) * 10;
+            const seekTime = (percentage / 100) * video.duration;
+            video.currentTime = seekTime;
+            break;
+          }
+          case " ": // Spacebar
+          case "k": // K
+            video.paused ? playVideo() : pauseVideo();
+            break;
+          case "arrowleft": // Left arrow
+            backward();
+            break;
+          case "arrowright": // Right arrow
+            forward();
+            break;
+          case "arrowup": // Up arrow
+            video.volume += 0.1;
+            if (volumeSlider) {
+              volumeSlider.value = video.volume;
+            }
+            break;
+          case "arrowdown": // Down arrow
+            video.volume -= 0.1;
+            if (volumeSlider) {
+              volumeSlider.value = video.volume;
+            }
+            break;
+          case "m": // M
+            video.muted = !video.muted;
+            break;
+          case "f": // F
+            toggleFullscreen();
+            break;
+          case "l": // L
+            video.loop = !video.loop;
+            break;
         }
-        case " ": // Spacebar
-        case "k": // K
-          video.paused ? playVideo() : pauseVideo();
-          break;
-        case "arrowleft": // Left arrow
-          backward();
-          break;
-        case "arrowright": // Right arrow
-          forward();
-          break;
-        case "arrowup": // Up arrow
-          video.volume += 0.1;
-          if (volumeSlider) {
-            volumeSlider.value = video.volume;
-          }
-          break;
-        case "arrowdown": // Down arrow
-          video.volume -= 0.1;
-          if (volumeSlider) {
-            volumeSlider.value = video.volume;
-          }
-          break;
-        case "m": // M
-          video.muted = !video.muted;
-          break;
-        case "f": // F
-          toggleFullscreen();
-          break;
-        case "l": // L
-          video.loop = !video.loop;
-          break;
       }
     }
   }
@@ -429,6 +443,9 @@ function initializeVideoPlayer(video) {
   if (video) {
     video.addEventListener("timeupdate", handleTimeUpdate);
   }
+  if (videoLoading) {
+    video.addEventListener("progress", updateLoadingProgress);
+  }
   document.addEventListener("keydown", handleKeyboardControls);
 
   defaultBehavior();
@@ -452,6 +469,7 @@ let currentVideo = null;
 function initializeYoutubePlayer(youtube) {
   //get dom elements
   const wrapper = youtube.closest('[f-data-video="wrapper"]');
+  const keyboardShortcuts = wrapper.getAttribute("f-data-video-shortcut");
   const posterBtn = wrapper.querySelector('[f-data-video="poster-button"]');
   const poster = wrapper.querySelector('[f-data-video="overlay"]');
   const posterBg = wrapper.querySelector('[f-data-video="poster"]');
@@ -733,67 +751,69 @@ function initializeYoutubePlayer(youtube) {
   }
 
   function handleKeyboardEvent(event) {
-    const key = event.key;
-    const vol = volumeSlider.value;
-    if (key === " " || key === "ArrowDown" || key === "ArrowUp") {
-      event.preventDefault();
-    }
-    if (video === currentVideo) {
-      switch (key) {
-        case "0":
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-        case "6":
-        case "7":
-        case "8":
-        case "9":
-          const percent = parseInt(key) * 10;
-          const newTime = (percent / 100) * videoDurationDefault;
-          video.seekTo(newTime, true);
-          break;
-        case " ":
-        case "k":
-          if (video.getPlayerState() === YT.PlayerState.PAUSED) {
-            playVideo();
-          } else {
-            pauseVideo();
-          }
-          break;
-        case "ArrowLeft":
-          backward();
-          break;
-        case "ArrowRight":
-          forward();
-          break;
-        case "ArrowUp":
-          // video.setVolume(video.getVolume() + 10);
-          if (volumeSlider) {
-            volumeSlider.value = Number(vol) + 0.1;
-            handleVolumeSliderInput();
-          }
-          break;
-        case "ArrowDown":
-          if (volumeSlider) {
-            volumeSlider.value = Number(vol) - 0.1;
-            handleVolumeSliderInput();
-          }
-          break;
-        case "m":
-          handleVolumeVideo();
-          break;
-        case "f":
-          // Fullscreen mode is not supported in YouTube Player API
-          alert("Fullscreen mode is not supported for YouTube videos.");
-          break;
-        case "l":
-          // Loop mode is not supported in YouTube Player API
-          alert("Loop mode is not supported for YouTube videos.");
-          break;
-        default:
-          break;
+    if (keyboardShortcuts) {
+      const key = event.key;
+      const vol = volumeSlider.value;
+      if (key === " " || key === "ArrowDown" || key === "ArrowUp") {
+        event.preventDefault();
+      }
+      if (video === currentVideo) {
+        switch (key) {
+          case "0":
+          case "1":
+          case "2":
+          case "3":
+          case "4":
+          case "5":
+          case "6":
+          case "7":
+          case "8":
+          case "9":
+            const percent = parseInt(key) * 10;
+            const newTime = (percent / 100) * videoDurationDefault;
+            video.seekTo(newTime, true);
+            break;
+          case " ":
+          case "k":
+            if (video.getPlayerState() === YT.PlayerState.PAUSED) {
+              playVideo();
+            } else {
+              pauseVideo();
+            }
+            break;
+          case "ArrowLeft":
+            backward();
+            break;
+          case "ArrowRight":
+            forward();
+            break;
+          case "ArrowUp":
+            // video.setVolume(video.getVolume() + 10);
+            if (volumeSlider) {
+              volumeSlider.value = Number(vol) + 0.1;
+              handleVolumeSliderInput();
+            }
+            break;
+          case "ArrowDown":
+            if (volumeSlider) {
+              volumeSlider.value = Number(vol) - 0.1;
+              handleVolumeSliderInput();
+            }
+            break;
+          case "m":
+            handleVolumeVideo();
+            break;
+          case "f":
+            // Fullscreen mode is not supported in YouTube Player API
+            alert("Fullscreen mode is not supported for YouTube videos.");
+            break;
+          case "l":
+            // Loop mode is not supported in YouTube Player API
+            alert("Loop mode is not supported for YouTube videos.");
+            break;
+          default:
+            break;
+        }
       }
     }
   }
@@ -892,10 +912,10 @@ document.addEventListener("DOMContentLoaded", () => {
 function initializeVimeoPlayer(vimeo) {
   //get dom elements
   const wrapper = vimeo.closest('[f-data-video="wrapper"]');
+  const keyboardShortcuts = wrapper.getAttribute("f-data-video-shortcut");
   const vimeoVideoClass = wrapper.querySelector(
     '[f-data-video="vimeo-player"]'
   );
-  const vimeoIframe = $('[f-data-video="vimeo-element"]').find("iframe");
   const posterBtn = wrapper.querySelector('[f-data-video="poster-button"]');
   const poster = wrapper.querySelector('[f-data-video="overlay"]');
   const posterBg = wrapper.querySelector('[f-data-video="poster"]');
@@ -1152,70 +1172,72 @@ function initializeVimeoPlayer(vimeo) {
   }
 
   function handleKeyboardEvent(event) {
-    const key = event.key;
-    if (key === " " || key === "ArrowDown" || key === "ArrowUp") {
-      event.preventDefault();
-    }
-
-    video.getPaused().then((isPaused) => {
-      if (!isPaused) {
-        switch (key) {
-          case "0":
-          case "1":
-          case "2":
-          case "3":
-          case "4":
-          case "5":
-          case "6":
-          case "7":
-          case "8":
-          case "9":
-            const percent = parseInt(key) * 10;
-            const newTime = (percent / 100) * videoDurationDefault;
-            video.setCurrentTime(newTime);
-            break;
-          case " ":
-          case "k":
-            video.getPaused().then((isPaused) => {
-              if (isPaused) {
-                playVideo();
-              } else {
-                pauseVideo();
-              }
-            });
-            break;
-          case "ArrowLeft":
-            backward();
-            break;
-          case "ArrowRight":
-            forward();
-            break;
-          case "ArrowUp":
-            if (volumeSlider) {
-              volumeSlider.value = Number(volumeSlider.value) + 0.1;
-              handleVolumeSliderInput();
-            }
-            break;
-          case "ArrowDown":
-            if (volumeSlider) {
-              volumeSlider.value = volumeSlider.value - 0.1;
-              handleVolumeSliderInput();
-            }
-            break;
-          case "m":
-            handleVolumeVideo();
-            break;
-          case "f":
-            handleFullscreenClick();
-            break;
-          case "l":
-            handleLoop();
-            break;
-          default:
-            break;
-        }
+    if (keyboardShortcuts) {
+      const key = event.key;
+      if (key === " " || key === "ArrowDown" || key === "ArrowUp") {
+        event.preventDefault();
       }
-    });
+
+      video.getPaused().then((isPaused) => {
+        if (!isPaused) {
+          switch (key) {
+            case "0":
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+            case "6":
+            case "7":
+            case "8":
+            case "9":
+              const percent = parseInt(key) * 10;
+              const newTime = (percent / 100) * videoDurationDefault;
+              video.setCurrentTime(newTime);
+              break;
+            case " ":
+            case "k":
+              video.getPaused().then((isPaused) => {
+                if (isPaused) {
+                  playVideo();
+                } else {
+                  pauseVideo();
+                }
+              });
+              break;
+            case "ArrowLeft":
+              backward();
+              break;
+            case "ArrowRight":
+              forward();
+              break;
+            case "ArrowUp":
+              if (volumeSlider) {
+                volumeSlider.value = Number(volumeSlider.value) + 0.1;
+                handleVolumeSliderInput();
+              }
+              break;
+            case "ArrowDown":
+              if (volumeSlider) {
+                volumeSlider.value = volumeSlider.value - 0.1;
+                handleVolumeSliderInput();
+              }
+              break;
+            case "m":
+              handleVolumeVideo();
+              break;
+            case "f":
+              handleFullscreenClick();
+              break;
+            case "l":
+              handleLoop();
+              break;
+            default:
+              break;
+          }
+        }
+      });
+    }
   }
 
   // Add event listeners
@@ -1271,9 +1293,9 @@ function initializeVimeoPlayer(vimeo) {
   // Video method
   video.on("timeupdate", handleTimeUpdate);
   video.on("ended", handleVideoEnded);
-  video.on("ready", function () {
-    console.log("Vimeo Player API is ready.");
-    console.log(vimeoIframe);
+  video.on("loaded", function () {
+    const vimeoIframe = $('[f-data-video="vimeo-element"]').find("iframe");
+
     if (vimeoVideoClass) {
       vimeoIframe.addClass(vimeoVideoClass.getAttribute("class"));
     }
