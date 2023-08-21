@@ -364,11 +364,11 @@ function initializeVideoPlayer(video) {
 }
 
 const htmlVids = document.querySelectorAll('[f-data-video="video-element"]');
-const maxIterations = 5;
+const maxIterations = 3;
 const ytEl = document.querySelectorAll('[f-data-video="youtube-element"]');
 const vimEl = document.querySelectorAll('[f-data-video="vimeo-element"]');
 
-if (maxIterations > 5 || vimEl.length > 0 || ytEl.length > 0) {
+if (maxIterations > 3 || vimEl.length > 0 || ytEl.length > 0) {
   alert(
     "You have exceeded the free plan. Kindly consider upgrading your subscription to enable the inclusion of more than five HTML videos and to utilize the functionality of both Vimeo and YouTube platforms."
   );
