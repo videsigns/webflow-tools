@@ -15,6 +15,35 @@ currentScript.parentNode.insertBefore(vimeoScript, currentScript);
 // Append the YouTube script before the current script
 currentScript.parentNode.insertBefore(youtubeScript, currentScript);
 
+function pauseAllPlayers() {
+  const allVideos = document.querySelectorAll("video, iframe");
+
+  allVideos.forEach((video) => {
+    if (video.tagName === "VIDEO") {
+      video.pause();
+    } else if (video.tagName === "IFRAME") {
+      // Check if it's a YouTube or Vimeo iframe
+      const src = video.getAttribute("src");
+
+      if (src.includes("youtube")) {
+        // For YouTube, post a message to pause the video
+        video.contentWindow.postMessage(
+          '{"event":"command","func":"pauseVideo","args":""}',
+          "*"
+        );
+      } else if (src.includes("vimeo")) {
+        // For Vimeo, post a message to pause the video
+        video.contentWindow.postMessage('{"method":"pause"}', "*");
+      }
+    }
+  });
+
+  $('[f-data-video="play-icon"]').show();
+  $('[f-data-video="play-button"]').show();
+  $('[f-data-video="pause-icon"]').hide();
+  $('[f-data-video="pause-button"]').hide();
+}
+
 ///////////////////////////////HTML VIDEO///////////////////////////////////
 function initializeVideoPlayer(video) {
   // Get DOM elements
@@ -55,6 +84,7 @@ function initializeVideoPlayer(video) {
   const forwardTime = 10; // Amount of time to forward (in seconds)
   const backwardTime = 10; // Amount of time to backward (in seconds)
   var curTime = 0;
+  let isDragging = false;
   const previewOffsetLeft = wrapper.querySelector(
     "[f-data-video-preview-offset-left]"
   )
@@ -74,32 +104,6 @@ function initializeVideoPlayer(video) {
       .toString()
       .padStart(2, "0");
     return `${minutes}:${seconds}`;
-  }
-
-  function pauseAllVideos(currentVideo) {
-    allVideos.forEach((v) => {
-      if (v !== currentVideo) {
-        v.pause();
-        resetUI(v);
-      }
-    });
-  }
-
-  function resetUI(v) {
-    // Reset UI elements for the specified video
-
-    if (playBtn) {
-      playBtn.style.display = "block";
-    }
-    if (playIcon) {
-      playIcon.style.display = "block";
-    }
-    if (pauseIcon) {
-      pauseIcon.style.display = "none";
-    }
-    if (pauseBtn) {
-      pauseBtn.style.display = "none";
-    }
   }
 
   function defaultBehavior() {
@@ -127,7 +131,7 @@ function initializeVideoPlayer(video) {
 
   function playVideo() {
     // Play the video and update UI
-    pauseAllVideos(video);
+    pauseAllPlayers();
     video.play();
     if (playBtn) {
       playBtn.style.display = "none";
@@ -224,6 +228,25 @@ function initializeVideoPlayer(video) {
 
     video.currentTime = clickedTime;
     //updateLoadingProgress();
+  }
+
+  if (progressBar) {
+    progressBar.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      isDragging = true;
+      handleProgressBarClick(e);
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      e.preventDefault();
+      if (isDragging) {
+        handleProgressBarClick(e);
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
   }
 
   function handlePlaybackSpeed(speed) {
@@ -368,8 +391,10 @@ function initializeVideoPlayer(video) {
       const progressBarWidth = progressBar.offsetWidth;
       const scrolledX =
         (hoveredTime / video.duration) * progressBarWidth + previewOffsetLeft;
-      previewWrapper.style.left = `${scrolledX}px`;
-      previewWrapper.style.opacity = 1;
+      if (previewWrapper) {
+        previewWrapper.style.left = `${scrolledX}px`;
+        previewWrapper.style.opacity = 1;
+      }
     }
   }
 
@@ -444,6 +469,7 @@ function initializeVideoPlayer(video) {
   document.addEventListener("keydown", handleKeyboardControls);
 
   defaultBehavior();
+
   if (defaultQuality) {
     handleVideoQuality(defaultQuality.getAttribute("f-data-video-quality"));
   }
@@ -498,6 +524,7 @@ function initializeYoutubePlayer(youtube) {
   const forwardTime = 5; // Amount of time to forward (in seconds)
   const backwardTime = 5; // Amount of time to backward (in seconds)
   let videoDuration = 0;
+  let isDragging = false;
   let videoDurationDefault = 0;
   let quality = "auto";
   let speed = 1;
@@ -617,6 +644,7 @@ function initializeYoutubePlayer(youtube) {
   }
 
   function playVideo() {
+    pauseAllPlayers();
     video.playVideo();
   }
 
@@ -681,6 +709,25 @@ function initializeYoutubePlayer(youtube) {
 
     video.seekTo(newTime, true);
     playVideo();
+  }
+
+  if (progressBar) {
+    progressBar.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      isDragging = true;
+      handleProgressBarClick(e);
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      e.preventDefault();
+      if (isDragging) {
+        handleProgressBarClick(e);
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
   }
 
   function updateVolumeIcon(volume) {
@@ -947,6 +994,7 @@ function initializeVimeoPlayer(vimeo) {
   const forwardTime = 5; // Amount of time to forward (in seconds)
   const backwardTime = 5; // Amount of time to backward (in seconds)
   var videoDuration = 0;
+  let isDragging = false;
   var videoDurationDefault = 0;
   var track = 0;
   var quality = "auto";
@@ -997,6 +1045,7 @@ function initializeVimeoPlayer(vimeo) {
 
   function playVideo() {
     // Play the video and update UI
+    pauseAllPlayers();
     video.play();
     if (playBtn) {
       playBtn.style.display = "none";
@@ -1087,6 +1136,25 @@ function initializeVimeoPlayer(vimeo) {
 
     const newTime = (progressPercentage / 100) * videoDurationDefault;
     video.setCurrentTime(newTime).then(playVideo);
+  }
+
+  if (progressBar) {
+    progressBar.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      isDragging = true;
+      handleProgressBarClick(e);
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      e.preventDefault();
+      if (isDragging) {
+        handleProgressBarClick(e);
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
   }
 
   function handleVolumeSliderInput() {
