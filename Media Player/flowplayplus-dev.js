@@ -227,26 +227,59 @@ function initializeVideoPlayer(video) {
     const clickedTime = (x * video.duration) / progressBar.offsetWidth;
 
     video.currentTime = clickedTime;
+    handleTimeUpdate();
     //updateLoadingProgress();
   }
 
   if (progressBar) {
-    progressBar.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      isDragging = true;
-      handleProgressBarClick(e);
-    });
+    isDragging = false;
+    let isThrottled = false;
 
-    document.addEventListener("mousemove", (e) => {
-      e.preventDefault();
-      if (isDragging) {
-        handleProgressBarClick(e);
+    const throttleTime = 50; // Adjust this value for smoother or faster tracking
+
+    function throttle(callback, delay) {
+      if (!isThrottled) {
+        callback();
+        isThrottled = true;
+        setTimeout(() => {
+          isThrottled = false;
+        }, delay);
       }
-    });
+    }
 
-    document.addEventListener("mouseup", () => {
+    function handleProgressBarStart(event) {
+      event.preventDefault();
+      //pauseVideo();
+      isDragging = true;
+      const eventObject = isTouchDevice ? event.touches[0] : event;
+      handleProgressBarClick(eventObject);
+    }
+
+    function handleProgressBarMove(event) {
+      event.preventDefault();
+      if (isDragging) {
+        throttle(() => {
+          const eventObject = isTouchDevice ? event.touches[0] : event;
+          handleProgressBarClick(eventObject);
+        }, throttleTime);
+      }
+    }
+
+    function handleProgressBarEnd() {
       isDragging = false;
-    });
+    }
+
+    const isTouchDevice = "ontouchstart" in document.documentElement;
+
+    if (isTouchDevice) {
+      progressBar.addEventListener("touchstart", handleProgressBarStart);
+      document.addEventListener("touchmove", handleProgressBarMove);
+      document.addEventListener("touchend", handleProgressBarEnd);
+    } else {
+      progressBar.addEventListener("mousedown", handleProgressBarStart);
+      document.addEventListener("mousemove", handleProgressBarMove);
+      document.addEventListener("mouseup", handleProgressBarEnd);
+    }
   }
 
   function handlePlaybackSpeed(speed) {
@@ -432,6 +465,7 @@ function initializeVideoPlayer(video) {
   }
   if (volumeSlider) {
     volumeSlider.addEventListener("input", handleVolumeSliderInput);
+    volumeSlider.addEventListener("touchstart", handleVolumeSliderInput);
   }
   if (progressBar) {
     progressBar.addEventListener("mousemove", handleProgressBarHover);
@@ -572,9 +606,10 @@ function initializeYoutubePlayer(youtube) {
         showRelatedVideos: false,
         showinfo: 0, // Hide video title
         rel: 0,
-        modestbranding: 1,
+        modestbranding: 0,
         customControls: true,
-        enablejsapi: 1
+        enablejsapi: 1,
+        iv_load_policy: 3
       },
       events: {
         onReady: onPlayerReady,
@@ -708,26 +743,59 @@ function initializeYoutubePlayer(youtube) {
     const newTime = (progressPercentage / 100) * videoDurationDefault;
 
     video.seekTo(newTime, true);
+    handleTimeUpdate();
     playVideo();
   }
 
   if (progressBar) {
-    progressBar.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      isDragging = true;
-      handleProgressBarClick(e);
-    });
+    isDragging = false;
+    let isThrottled = false;
 
-    document.addEventListener("mousemove", (e) => {
-      e.preventDefault();
-      if (isDragging) {
-        handleProgressBarClick(e);
+    const throttleTime = 50; // Adjust this value for smoother or faster tracking
+
+    function throttle(callback, delay) {
+      if (!isThrottled) {
+        callback();
+        isThrottled = true;
+        setTimeout(() => {
+          isThrottled = false;
+        }, delay);
       }
-    });
+    }
 
-    document.addEventListener("mouseup", () => {
+    function handleProgressBarStart(event) {
+      event.preventDefault();
+      //pauseVideo();
+      isDragging = true;
+      const eventObject = isTouchDevice ? event.touches[0] : event;
+      handleProgressBarClick(eventObject);
+    }
+
+    function handleProgressBarMove(event) {
+      event.preventDefault();
+      if (isDragging) {
+        throttle(() => {
+          const eventObject = isTouchDevice ? event.touches[0] : event;
+          handleProgressBarClick(eventObject);
+        }, throttleTime);
+      }
+    }
+
+    function handleProgressBarEnd() {
       isDragging = false;
-    });
+    }
+
+    const isTouchDevice = "ontouchstart" in document.documentElement;
+
+    if (isTouchDevice) {
+      progressBar.addEventListener("touchstart", handleProgressBarStart);
+      document.addEventListener("touchmove", handleProgressBarMove);
+      document.addEventListener("touchend", handleProgressBarEnd);
+    } else {
+      progressBar.addEventListener("mousedown", handleProgressBarStart);
+      document.addEventListener("mousemove", handleProgressBarMove);
+      document.addEventListener("mouseup", handleProgressBarEnd);
+    }
   }
 
   function updateVolumeIcon(volume) {
@@ -886,6 +954,7 @@ function initializeYoutubePlayer(youtube) {
   }
   if (volumeSlider) {
     volumeSlider.addEventListener("input", handleVolumeSliderInput);
+    volumeSlider.addEventListener("touchstart", handleVolumeSliderInput);
   }
   if (replayBtn) {
     replayBtn.addEventListener("click", handleReplayClick);
@@ -1007,7 +1076,7 @@ function initializeVimeoPlayer(vimeo) {
   };
 
   var video = new Vimeo.Player(vimeo, options);
-
+  console.log("video loaded", video);
   function defaultBehavior() {
     // Hide certain elements and set initial volume
     if (pauseIcon) {
@@ -1133,28 +1202,61 @@ function initializeVimeoPlayer(vimeo) {
     const progressBarWidth = progressBar.offsetWidth;
     const clickX = e.offsetX;
     const progressPercentage = (clickX / progressBarWidth) * 100;
-
+    progress.style.width = progressPercentage;
     const newTime = (progressPercentage / 100) * videoDurationDefault;
     video.setCurrentTime(newTime).then(playVideo);
+    //handleTimeUpdate();
   }
 
   if (progressBar) {
-    progressBar.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      isDragging = true;
-      handleProgressBarClick(e);
-    });
+    isDragging = false;
+    let isThrottled = false;
 
-    document.addEventListener("mousemove", (e) => {
-      e.preventDefault();
-      if (isDragging) {
-        handleProgressBarClick(e);
+    const throttleTime = 50; // Adjust this value for smoother or faster tracking
+
+    function throttle(callback, delay) {
+      if (!isThrottled) {
+        callback();
+        isThrottled = true;
+        setTimeout(() => {
+          isThrottled = false;
+        }, delay);
       }
-    });
+    }
 
-    document.addEventListener("mouseup", () => {
+    function handleProgressBarStart(event) {
+      event.preventDefault();
+      //pauseVideo();
+      isDragging = true;
+      const eventObject = isTouchDevice ? event.touches[0] : event;
+      handleProgressBarClick(eventObject);
+    }
+
+    function handleProgressBarMove(event) {
+      event.preventDefault();
+      if (isDragging) {
+        throttle(() => {
+          const eventObject = isTouchDevice ? event.touches[0] : event;
+          handleProgressBarClick(eventObject);
+        }, throttleTime);
+      }
+    }
+
+    function handleProgressBarEnd() {
       isDragging = false;
-    });
+    }
+
+    const isTouchDevice = "ontouchstart" in document.documentElement;
+
+    if (isTouchDevice) {
+      progressBar.addEventListener("touchstart", handleProgressBarStart);
+      document.addEventListener("touchmove", handleProgressBarMove);
+      document.addEventListener("touchend", handleProgressBarEnd);
+    } else {
+      progressBar.addEventListener("mousedown", handleProgressBarStart);
+      document.addEventListener("mousemove", handleProgressBarMove);
+      document.addEventListener("mouseup", handleProgressBarEnd);
+    }
   }
 
   function handleVolumeSliderInput() {
@@ -1329,6 +1431,7 @@ function initializeVimeoPlayer(vimeo) {
   }
   if (volumeSlider) {
     volumeSlider.addEventListener("input", handleVolumeSliderInput);
+    volumeSlider.addEventListener("touchstart", handleVolumeSliderInput);
   }
   if (replayBtn) {
     replayBtn.addEventListener("click", handleReplayClick);
