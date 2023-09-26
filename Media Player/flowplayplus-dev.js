@@ -44,6 +44,13 @@ function pauseAllPlayers() {
   $('[f-data-video="pause-button"]').hide();
 }
 
+const rangeSlider = new Event("input", {
+  bubbles: true,
+  cancelable: true,
+});
+
+let currentVideo = null;
+
 ///////////////////////////////HTML VIDEO///////////////////////////////////
 function initializeVideoPlayer(video) {
   // Get DOM elements
@@ -77,7 +84,6 @@ function initializeVideoPlayer(video) {
   const previewWrapper = wrapper.querySelector(
     '[f-data-video="preview-wrapper"]',
   );
-  const allVideos = document.querySelectorAll('[f-data-video="video-element"]');
 
   //variables
   let track = 0;
@@ -133,6 +139,10 @@ function initializeVideoPlayer(video) {
     // Play the video and update UI
     pauseAllPlayers();
     video.play();
+    currentVideo = video;
+    console.log("current video:", currentVideo);
+
+    // console.log(currentVideo === video);
     if (playBtn) {
       playBtn.style.display = "none";
     }
@@ -159,6 +169,9 @@ function initializeVideoPlayer(video) {
   function pauseVideo() {
     // Pause the video and update UI
     video.pause();
+    currentVideo = video;
+    console.log("current video:", currentVideo);
+
     if (playBtn) {
       playBtn.style.display = "block";
     }
@@ -353,14 +366,25 @@ function initializeVideoPlayer(video) {
     }
   }
 
+  function updateVolumeSlider() {
+    if (volumeSlider) {
+      volumeSlider.value = video.volume;
+      volumeSlider.dispatchEvent(rangeSlider);
+    }
+  }
+
   // Keyboard controls
   function handleKeyboardControls(event) {
+    console.log(video);
     if (keyboardShortcuts) {
       const key = event.key.toLowerCase();
       if (key === " " || key === "arrowdown" || key === "arrowup") {
         event.preventDefault();
       }
-      if (!video.paused) {
+      console.log(video === currentVideo, video, currentVideo);
+      // currentVideo.pause();
+      // video = currentVideo;
+      if (video === currentVideo) {
         switch (key) {
           case "0":
           case "1":
@@ -377,7 +401,9 @@ function initializeVideoPlayer(video) {
             video.currentTime = seekTime;
             break;
           }
-          case " ": // Spacebar
+          case " ":
+            video.paused ? playVideo() : pauseVideo();
+            break; // Spacebar
           case "k": // K
             video.paused ? playVideo() : pauseVideo();
             break;
@@ -388,15 +414,15 @@ function initializeVideoPlayer(video) {
             forward();
             break;
           case "arrowup": // Up arrow
-            video.volume += 0.1;
-            if (volumeSlider) {
-              volumeSlider.value = video.volume;
+            if (video.volume !== 1) {
+              video.volume += 0.1;
+              updateVolumeSlider(); // Add this line to update the volume slider
             }
             break;
           case "arrowdown": // Down arrow
-            video.volume -= 0.1;
-            if (volumeSlider) {
-              volumeSlider.value = video.volume;
+            if (video.volume !== 0) {
+              video.volume -= 0.1;
+              updateVolumeSlider(); // Add this line to update the volume slider
             }
             break;
           case "m": // M
@@ -502,13 +528,13 @@ function initializeVideoPlayer(video) {
   if (videoLoading) {
     video.addEventListener("progress", updateLoadingProgress);
   }
-  document.addEventListener("keydown", handleKeyboardControls);
 
   defaultBehavior();
 
   if (defaultQuality) {
     handleVideoQuality(defaultQuality.getAttribute("f-data-video-quality"));
   }
+  document.addEventListener("keydown", handleKeyboardControls);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -523,7 +549,6 @@ document.addEventListener("DOMContentLoaded", () => {
 ////////////////////////////END OF HTML VIDEO////////////////////////////////
 
 ///////////////////////////////YOUTUBE VIDEO/////////////////////////////////
-let currentVideo = null;
 let youtubePlayer; // Reference to the YouTube player
 
 function initializeYoutubePlayer(youtube) {
@@ -857,6 +882,7 @@ function initializeYoutubePlayer(youtube) {
         volumeSlider.value = 0.5;
         volumeBtn.style.opacity = 1;
       }
+      volumeSlider.dispatchEvent(rangeSlider);
     }
   }
 
@@ -1183,6 +1209,7 @@ function initializeVimeoPlayer(vimeo) {
     if (posterBg) {
       posterBg.style.display = "none";
     }
+    currentVideo = video;
   }
 
   function pauseVideo() {
@@ -1368,6 +1395,7 @@ function initializeVimeoPlayer(vimeo) {
         volumeSlider.value = 0.5;
         volumeBtn.style.opacity = 1;
       }
+      volumeSlider.dispatchEvent(rangeSlider);
     });
   }
 
@@ -1394,65 +1422,65 @@ function initializeVimeoPlayer(vimeo) {
         event.preventDefault();
       }
 
-      video.getPaused().then((isPaused) => {
-        if (!isPaused) {
-          switch (key) {
-            case "0":
-            case "1":
-            case "2":
-            case "3":
-            case "4":
-            case "5":
-            case "6":
-            case "7":
-            case "8":
-            case "9":
-              const percent = parseInt(key) * 10;
-              const newTime = (percent / 100) * videoDurationDefault;
-              video.setCurrentTime(newTime);
-              break;
-            case " ":
-            case "k":
-              video.getPaused().then((isPaused) => {
-                if (isPaused) {
-                  playVideo();
-                } else {
-                  pauseVideo();
-                }
-              });
-              break;
-            case "ArrowLeft":
-              backward();
-              break;
-            case "ArrowRight":
-              forward();
-              break;
-            case "ArrowUp":
-              if (volumeSlider) {
-                volumeSlider.value = Number(volumeSlider.value) + 0.1;
-                handleVolumeSliderInput();
+      // video.getPaused().then((isPaused) => {
+      if (currentVideo === video) {
+        switch (key) {
+          case "0":
+          case "1":
+          case "2":
+          case "3":
+          case "4":
+          case "5":
+          case "6":
+          case "7":
+          case "8":
+          case "9":
+            const percent = parseInt(key) * 10;
+            const newTime = (percent / 100) * videoDurationDefault;
+            video.setCurrentTime(newTime);
+            break;
+          case " ":
+          case "k":
+            video.getPaused().then((isPaused) => {
+              if (isPaused) {
+                playVideo();
+              } else {
+                pauseVideo();
               }
-              break;
-            case "ArrowDown":
-              if (volumeSlider) {
-                volumeSlider.value = volumeSlider.value - 0.1;
-                handleVolumeSliderInput();
-              }
-              break;
-            case "m":
-              handleVolumeVideo();
-              break;
-            case "f":
-              handleFullscreenClick();
-              break;
-            case "l":
-              handleLoop();
-              break;
-            default:
-              break;
-          }
+            });
+            break;
+          case "ArrowLeft":
+            backward();
+            break;
+          case "ArrowRight":
+            forward();
+            break;
+          case "ArrowUp":
+            if (volumeSlider) {
+              volumeSlider.value = Number(volumeSlider.value) + 0.1;
+              handleVolumeSliderInput();
+            }
+            break;
+          case "ArrowDown":
+            if (volumeSlider) {
+              volumeSlider.value = volumeSlider.value - 0.1;
+              handleVolumeSliderInput();
+            }
+            break;
+          case "m":
+            handleVolumeVideo();
+            break;
+          case "f":
+            handleFullscreenClick();
+            break;
+          case "l":
+            handleLoop();
+            break;
+          default:
+            break;
         }
-      });
+      }
+      // });
     }
   }
 
