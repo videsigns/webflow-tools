@@ -29,7 +29,7 @@ function pauseAllPlayers() {
         // For YouTube, post a message to pause the video
         video.contentWindow.postMessage(
           '{"event":"command","func":"pauseVideo","args":""}',
-          "*"
+          "*",
         );
       } else if (src.includes("vimeo")) {
         // For Vimeo, post a message to pause the video
@@ -75,7 +75,7 @@ function initializeVideoPlayer(video) {
   const qualityText = wrapper.querySelector('[f-data-video="quality-text"]');
   const speedText = wrapper.querySelector('[f-data-video="speed-text"]');
   const previewWrapper = wrapper.querySelector(
-    '[f-data-video="preview-wrapper"]'
+    '[f-data-video="preview-wrapper"]',
   );
   const allVideos = document.querySelectorAll('[f-data-video="video-element"]');
 
@@ -86,12 +86,12 @@ function initializeVideoPlayer(video) {
   var curTime = 0;
   let isDragging = false;
   const previewOffsetLeft = wrapper.querySelector(
-    "[f-data-video-preview-offset-left]"
+    "[f-data-video-preview-offset-left]",
   )
     ? Number(
         wrapper
           .querySelector("[f-data-video-preview-offset-left]")
-          .getAttribute("f-data-video-preview-offset-left")
+          .getAttribute("f-data-video-preview-offset-left"),
       )
     : "";
 
@@ -249,7 +249,7 @@ function initializeVideoPlayer(video) {
 
     function handleProgressBarStart(event) {
       event.preventDefault();
-      //pauseVideo();
+      // Pause video or other actions if needed.
       isDragging = true;
       const eventObject = isTouchDevice ? event.touches[0] : event;
       handleProgressBarClick(eventObject);
@@ -273,12 +273,12 @@ function initializeVideoPlayer(video) {
 
     if (isTouchDevice) {
       progressBar.addEventListener("touchstart", handleProgressBarStart);
-      document.addEventListener("touchmove", handleProgressBarMove);
-      document.addEventListener("touchend", handleProgressBarEnd);
+      progressBar.addEventListener("touchmove", handleProgressBarMove);
+      progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove);
-      document.addEventListener("mouseup", handleProgressBarEnd);
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -302,7 +302,7 @@ function initializeVideoPlayer(video) {
     }
     // Find the corresponding source with the selected quality
     var selectedSource = video.querySelector(
-      'source[f-data-video-src-quality="' + quality + '"]'
+      'source[f-data-video-src-quality="' + quality + '"]',
     );
 
     // Update the video source and reload
@@ -425,6 +425,7 @@ function initializeVideoPlayer(video) {
       const scrolledX =
         (hoveredTime / video.duration) * progressBarWidth + previewOffsetLeft;
       if (previewWrapper) {
+        previewWrapper.style.display = "";
         previewWrapper.style.left = `${scrolledX}px`;
         previewWrapper.style.opacity = 1;
       }
@@ -434,6 +435,7 @@ function initializeVideoPlayer(video) {
   function handleProgressBarHoverOut() {
     // Hide the preview when not hovering
     if (preview) {
+      previewWrapper.style.display = "none";
       previewWrapper.style.opacity = 0;
     }
   }
@@ -522,6 +524,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 ///////////////////////////////YOUTUBE VIDEO/////////////////////////////////
 let currentVideo = null;
+let youtubePlayer; // Reference to the YouTube player
 
 function initializeYoutubePlayer(youtube) {
   //get dom elements
@@ -609,12 +612,13 @@ function initializeYoutubePlayer(youtube) {
         modestbranding: 0,
         customControls: true,
         enablejsapi: 1,
-        iv_load_policy: 3
+        iv_load_policy: 3,
+        cc_load_policy: 1,
       },
       events: {
         onReady: onPlayerReady,
-        onStateChange: onPlayerStateChange
-      }
+        onStateChange: onPlayerStateChange,
+      },
     });
     return player;
   }
@@ -625,6 +629,7 @@ function initializeYoutubePlayer(youtube) {
   function onPlayerReady(event) {
     defaultBehavior();
     getVideoDuration();
+    loadSubtitles();
   }
 
   function getVideoDuration() {
@@ -789,12 +794,12 @@ function initializeYoutubePlayer(youtube) {
 
     if (isTouchDevice) {
       progressBar.addEventListener("touchstart", handleProgressBarStart);
-      document.addEventListener("touchmove", handleProgressBarMove);
-      document.addEventListener("touchend", handleProgressBarEnd);
+      progressBar.addEventListener("touchmove", handleProgressBarMove);
+      progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove);
-      document.addEventListener("mouseup", handleProgressBarEnd);
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -933,6 +938,46 @@ function initializeYoutubePlayer(youtube) {
     }
   }
 
+  // Add a Subtitle Button
+  const subtitleButton = document.createElement("button");
+  subtitleButton.textContent = "Subtitles";
+  wrapper.appendChild(subtitleButton);
+
+  // Load Subtitles
+  function loadSubtitles() {
+    const videoUrl = `https://www.youtube.com/api/timedtext?v=${videoID}&lang=en`;
+
+    // Fetch the subtitles
+    fetch(videoUrl)
+      .then((response) => response.text())
+      .then((subtitles) => {
+        // Create a track element for the subtitles
+        const track = document.createElement("track");
+        track.kind = "subtitles";
+        track.srclang = "en";
+        track.label = "English";
+        track.src = `data:text/xml,${encodeURIComponent(subtitles)}`;
+        console.log(track);
+        // Add the track element to the YouTube player
+        video.target.appendChild(track);
+      })
+      .catch((error) => {
+        console.error("Error loading subtitles:", error);
+      });
+  }
+
+  // Handle Subtitle Button Click
+  subtitleButton.addEventListener("click", () => {
+    // Toggle subtitles on/off
+    const track = youtubePlayer.target.querySelector("track");
+    if (track) {
+      track.track.mode = track.track.mode === "showing" ? "hidden" : "showing";
+    }
+  });
+
+  // Initialize video player
+  youtubePlayer = createPlayer();
+
   // Add event listeners
   if (posterBtn) {
     posterBtn.addEventListener("click", handlePosterClick);
@@ -1030,7 +1075,7 @@ function initializeVimeoPlayer(vimeo) {
   const wrapper = vimeo.closest('[f-data-video="wrapper"]');
   const keyboardShortcuts = wrapper.getAttribute("f-data-video-shortcut");
   const vimeoVideoClass = wrapper.querySelector(
-    '[f-data-video="vimeo-player"]'
+    '[f-data-video="vimeo-player"]',
   );
   const posterBtn = wrapper.querySelector('[f-data-video="poster-button"]');
   const poster = wrapper.querySelector('[f-data-video="overlay"]');
@@ -1072,7 +1117,8 @@ function initializeVimeoPlayer(vimeo) {
     id: videoID,
     width: videoWidth,
     height: videoHeight,
-    controls: videoControls
+    controls: videoControls,
+    texttrack: "en",
   };
 
   var video = new Vimeo.Player(vimeo, options);
@@ -1250,12 +1296,12 @@ function initializeVimeoPlayer(vimeo) {
 
     if (isTouchDevice) {
       progressBar.addEventListener("touchstart", handleProgressBarStart);
-      document.addEventListener("touchmove", handleProgressBarMove);
-      document.addEventListener("touchend", handleProgressBarEnd);
+      progressBar.addEventListener("touchmove", handleProgressBarMove);
+      progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove);
-      document.addEventListener("mouseup", handleProgressBarEnd);
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
