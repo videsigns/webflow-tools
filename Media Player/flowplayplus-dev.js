@@ -363,12 +363,18 @@ function initializeVideoPlayer(video) {
         video.volume = 0.5;
         volumeBtn.style.opacity = 1;
       }
+      volumeSlider.dispatchEvent(rangeSlider);
     }
   }
 
   function updateVolumeSlider() {
     if (volumeSlider) {
       volumeSlider.value = video.volume;
+      if (video.volume <= 0) {
+        volumeBtn.style.opacity = 0.5;
+      } else {
+        volumeBtn.style.opacity = 1;
+      }
       volumeSlider.dispatchEvent(rangeSlider);
     }
   }
