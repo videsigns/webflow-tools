@@ -29,7 +29,7 @@ function pauseAllPlayers() {
         // For YouTube, post a message to pause the video
         video.contentWindow.postMessage(
           '{"event":"command","func":"pauseVideo","args":""}',
-          "*"
+          "*",
         );
       } else if (src.includes("vimeo")) {
         // For Vimeo, post a message to pause the video
@@ -43,6 +43,13 @@ function pauseAllPlayers() {
   $('[f-data-video="pause-icon"]').hide();
   $('[f-data-video="pause-button"]').hide();
 }
+
+const rangeSlider = new Event("input", {
+  bubbles: true,
+  cancelable: true,
+});
+
+let currentVideo = null;
 
 ///////////////////////////////HTML VIDEO///////////////////////////////////
 function initializeVideoPlayer(video) {
@@ -75,9 +82,8 @@ function initializeVideoPlayer(video) {
   const qualityText = wrapper.querySelector('[f-data-video="quality-text"]');
   const speedText = wrapper.querySelector('[f-data-video="speed-text"]');
   const previewWrapper = wrapper.querySelector(
-    '[f-data-video="preview-wrapper"]'
+    '[f-data-video="preview-wrapper"]',
   );
-  const allVideos = document.querySelectorAll('[f-data-video="video-element"]');
 
   //variables
   let track = 0;
@@ -86,12 +92,12 @@ function initializeVideoPlayer(video) {
   var curTime = 0;
   let isDragging = false;
   const previewOffsetLeft = wrapper.querySelector(
-    "[f-data-video-preview-offset-left]"
+    "[f-data-video-preview-offset-left]",
   )
     ? Number(
         wrapper
           .querySelector("[f-data-video-preview-offset-left]")
-          .getAttribute("f-data-video-preview-offset-left")
+          .getAttribute("f-data-video-preview-offset-left"),
       )
     : "";
 
@@ -133,6 +139,10 @@ function initializeVideoPlayer(video) {
     // Play the video and update UI
     pauseAllPlayers();
     video.play();
+    currentVideo = video;
+    console.log("current video:", currentVideo);
+
+    // console.log(currentVideo === video);
     if (playBtn) {
       playBtn.style.display = "none";
     }
@@ -159,6 +169,9 @@ function initializeVideoPlayer(video) {
   function pauseVideo() {
     // Pause the video and update UI
     video.pause();
+    currentVideo = video;
+    console.log("current video:", currentVideo);
+
     if (playBtn) {
       playBtn.style.display = "block";
     }
@@ -249,7 +262,7 @@ function initializeVideoPlayer(video) {
 
     function handleProgressBarStart(event) {
       event.preventDefault();
-      //pauseVideo();
+      // Pause video or other actions if needed.
       isDragging = true;
       const eventObject = isTouchDevice ? event.touches[0] : event;
       handleProgressBarClick(eventObject);
@@ -273,12 +286,12 @@ function initializeVideoPlayer(video) {
 
     if (isTouchDevice) {
       progressBar.addEventListener("touchstart", handleProgressBarStart);
-      document.addEventListener("touchmove", handleProgressBarMove);
-      document.addEventListener("touchend", handleProgressBarEnd);
+      progressBar.addEventListener("touchmove", handleProgressBarMove);
+      progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove);
-      document.addEventListener("mouseup", handleProgressBarEnd);
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -302,7 +315,7 @@ function initializeVideoPlayer(video) {
     }
     // Find the corresponding source with the selected quality
     var selectedSource = video.querySelector(
-      'source[f-data-video-src-quality="' + quality + '"]'
+      'source[f-data-video-src-quality="' + quality + '"]',
     );
 
     // Update the video source and reload
@@ -350,17 +363,34 @@ function initializeVideoPlayer(video) {
         video.volume = 0.5;
         volumeBtn.style.opacity = 1;
       }
+      volumeSlider.dispatchEvent(rangeSlider);
+    }
+  }
+
+  function updateVolumeSlider() {
+    if (volumeSlider) {
+      volumeSlider.value = video.volume;
+      if (video.volume <= 0) {
+        volumeBtn.style.opacity = 0.5;
+      } else {
+        volumeBtn.style.opacity = 1;
+      }
+      volumeSlider.dispatchEvent(rangeSlider);
     }
   }
 
   // Keyboard controls
   function handleKeyboardControls(event) {
+    console.log(video);
     if (keyboardShortcuts) {
       const key = event.key.toLowerCase();
       if (key === " " || key === "arrowdown" || key === "arrowup") {
         event.preventDefault();
       }
-      if (!video.paused) {
+      console.log(video === currentVideo, video, currentVideo);
+      // currentVideo.pause();
+      // video = currentVideo;
+      if (video === currentVideo) {
         switch (key) {
           case "0":
           case "1":
@@ -377,7 +407,9 @@ function initializeVideoPlayer(video) {
             video.currentTime = seekTime;
             break;
           }
-          case " ": // Spacebar
+          case " ":
+            video.paused ? playVideo() : pauseVideo();
+            break; // Spacebar
           case "k": // K
             video.paused ? playVideo() : pauseVideo();
             break;
@@ -388,15 +420,15 @@ function initializeVideoPlayer(video) {
             forward();
             break;
           case "arrowup": // Up arrow
-            video.volume += 0.1;
-            if (volumeSlider) {
-              volumeSlider.value = video.volume;
+            if (video.volume !== 1) {
+              video.volume += 0.1;
+              updateVolumeSlider(); // Add this line to update the volume slider
             }
             break;
           case "arrowdown": // Down arrow
-            video.volume -= 0.1;
-            if (volumeSlider) {
-              volumeSlider.value = video.volume;
+            if (video.volume !== 0) {
+              video.volume -= 0.1;
+              updateVolumeSlider(); // Add this line to update the volume slider
             }
             break;
           case "m": // M
@@ -425,6 +457,7 @@ function initializeVideoPlayer(video) {
       const scrolledX =
         (hoveredTime / video.duration) * progressBarWidth + previewOffsetLeft;
       if (previewWrapper) {
+        previewWrapper.style.display = "";
         previewWrapper.style.left = `${scrolledX}px`;
         previewWrapper.style.opacity = 1;
       }
@@ -434,6 +467,7 @@ function initializeVideoPlayer(video) {
   function handleProgressBarHoverOut() {
     // Hide the preview when not hovering
     if (preview) {
+      previewWrapper.style.display = "none";
       previewWrapper.style.opacity = 0;
     }
   }
@@ -500,13 +534,13 @@ function initializeVideoPlayer(video) {
   if (videoLoading) {
     video.addEventListener("progress", updateLoadingProgress);
   }
-  document.addEventListener("keydown", handleKeyboardControls);
 
   defaultBehavior();
 
   if (defaultQuality) {
     handleVideoQuality(defaultQuality.getAttribute("f-data-video-quality"));
   }
+  document.addEventListener("keydown", handleKeyboardControls);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -521,7 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
 ////////////////////////////END OF HTML VIDEO////////////////////////////////
 
 ///////////////////////////////YOUTUBE VIDEO/////////////////////////////////
-let currentVideo = null;
+let youtubePlayer; // Reference to the YouTube player
 
 function initializeYoutubePlayer(youtube) {
   //get dom elements
@@ -609,12 +643,13 @@ function initializeYoutubePlayer(youtube) {
         modestbranding: 0,
         customControls: true,
         enablejsapi: 1,
-        iv_load_policy: 3
+        iv_load_policy: 3,
+        cc_load_policy: 1,
       },
       events: {
         onReady: onPlayerReady,
-        onStateChange: onPlayerStateChange
-      }
+        onStateChange: onPlayerStateChange,
+      },
     });
     return player;
   }
@@ -625,6 +660,7 @@ function initializeYoutubePlayer(youtube) {
   function onPlayerReady(event) {
     defaultBehavior();
     getVideoDuration();
+    loadSubtitles();
   }
 
   function getVideoDuration() {
@@ -789,12 +825,12 @@ function initializeYoutubePlayer(youtube) {
 
     if (isTouchDevice) {
       progressBar.addEventListener("touchstart", handleProgressBarStart);
-      document.addEventListener("touchmove", handleProgressBarMove);
-      document.addEventListener("touchend", handleProgressBarEnd);
+      progressBar.addEventListener("touchmove", handleProgressBarMove);
+      progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove);
-      document.addEventListener("mouseup", handleProgressBarEnd);
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -852,6 +888,7 @@ function initializeYoutubePlayer(youtube) {
         volumeSlider.value = 0.5;
         volumeBtn.style.opacity = 1;
       }
+      volumeSlider.dispatchEvent(rangeSlider);
     }
   }
 
@@ -932,6 +969,46 @@ function initializeYoutubePlayer(youtube) {
       }
     }
   }
+
+  // Add a Subtitle Button
+  const subtitleButton = document.createElement("button");
+  subtitleButton.textContent = "Subtitles";
+  wrapper.appendChild(subtitleButton);
+
+  // Load Subtitles
+  function loadSubtitles() {
+    const videoUrl = `https://www.youtube.com/api/timedtext?v=${videoID}&lang=en`;
+
+    // Fetch the subtitles
+    fetch(videoUrl)
+      .then((response) => response.text())
+      .then((subtitles) => {
+        // Create a track element for the subtitles
+        const track = document.createElement("track");
+        track.kind = "subtitles";
+        track.srclang = "en";
+        track.label = "English";
+        track.src = `data:text/xml,${encodeURIComponent(subtitles)}`;
+        console.log(track);
+        // Add the track element to the YouTube player
+        video.target.appendChild(track);
+      })
+      .catch((error) => {
+        console.error("Error loading subtitles:", error);
+      });
+  }
+
+  // Handle Subtitle Button Click
+  subtitleButton.addEventListener("click", () => {
+    // Toggle subtitles on/off
+    const track = youtubePlayer.target.querySelector("track");
+    if (track) {
+      track.track.mode = track.track.mode === "showing" ? "hidden" : "showing";
+    }
+  });
+
+  // Initialize video player
+  youtubePlayer = createPlayer();
 
   // Add event listeners
   if (posterBtn) {
@@ -1030,7 +1107,7 @@ function initializeVimeoPlayer(vimeo) {
   const wrapper = vimeo.closest('[f-data-video="wrapper"]');
   const keyboardShortcuts = wrapper.getAttribute("f-data-video-shortcut");
   const vimeoVideoClass = wrapper.querySelector(
-    '[f-data-video="vimeo-player"]'
+    '[f-data-video="vimeo-player"]',
   );
   const posterBtn = wrapper.querySelector('[f-data-video="poster-button"]');
   const poster = wrapper.querySelector('[f-data-video="overlay"]');
@@ -1072,7 +1149,8 @@ function initializeVimeoPlayer(vimeo) {
     id: videoID,
     width: videoWidth,
     height: videoHeight,
-    controls: videoControls
+    controls: videoControls,
+    texttrack: "en",
   };
 
   var video = new Vimeo.Player(vimeo, options);
@@ -1137,6 +1215,7 @@ function initializeVimeoPlayer(vimeo) {
     if (posterBg) {
       posterBg.style.display = "none";
     }
+    currentVideo = video;
   }
 
   function pauseVideo() {
@@ -1250,12 +1329,12 @@ function initializeVimeoPlayer(vimeo) {
 
     if (isTouchDevice) {
       progressBar.addEventListener("touchstart", handleProgressBarStart);
-      document.addEventListener("touchmove", handleProgressBarMove);
-      document.addEventListener("touchend", handleProgressBarEnd);
+      progressBar.addEventListener("touchmove", handleProgressBarMove);
+      progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove);
-      document.addEventListener("mouseup", handleProgressBarEnd);
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -1322,6 +1401,7 @@ function initializeVimeoPlayer(vimeo) {
         volumeSlider.value = 0.5;
         volumeBtn.style.opacity = 1;
       }
+      volumeSlider.dispatchEvent(rangeSlider);
     });
   }
 
@@ -1348,65 +1428,65 @@ function initializeVimeoPlayer(vimeo) {
         event.preventDefault();
       }
 
-      video.getPaused().then((isPaused) => {
-        if (!isPaused) {
-          switch (key) {
-            case "0":
-            case "1":
-            case "2":
-            case "3":
-            case "4":
-            case "5":
-            case "6":
-            case "7":
-            case "8":
-            case "9":
-              const percent = parseInt(key) * 10;
-              const newTime = (percent / 100) * videoDurationDefault;
-              video.setCurrentTime(newTime);
-              break;
-            case " ":
-            case "k":
-              video.getPaused().then((isPaused) => {
-                if (isPaused) {
-                  playVideo();
-                } else {
-                  pauseVideo();
-                }
-              });
-              break;
-            case "ArrowLeft":
-              backward();
-              break;
-            case "ArrowRight":
-              forward();
-              break;
-            case "ArrowUp":
-              if (volumeSlider) {
-                volumeSlider.value = Number(volumeSlider.value) + 0.1;
-                handleVolumeSliderInput();
+      // video.getPaused().then((isPaused) => {
+      if (currentVideo === video) {
+        switch (key) {
+          case "0":
+          case "1":
+          case "2":
+          case "3":
+          case "4":
+          case "5":
+          case "6":
+          case "7":
+          case "8":
+          case "9":
+            const percent = parseInt(key) * 10;
+            const newTime = (percent / 100) * videoDurationDefault;
+            video.setCurrentTime(newTime);
+            break;
+          case " ":
+          case "k":
+            video.getPaused().then((isPaused) => {
+              if (isPaused) {
+                playVideo();
+              } else {
+                pauseVideo();
               }
-              break;
-            case "ArrowDown":
-              if (volumeSlider) {
-                volumeSlider.value = volumeSlider.value - 0.1;
-                handleVolumeSliderInput();
-              }
-              break;
-            case "m":
-              handleVolumeVideo();
-              break;
-            case "f":
-              handleFullscreenClick();
-              break;
-            case "l":
-              handleLoop();
-              break;
-            default:
-              break;
-          }
+            });
+            break;
+          case "ArrowLeft":
+            backward();
+            break;
+          case "ArrowRight":
+            forward();
+            break;
+          case "ArrowUp":
+            if (volumeSlider) {
+              volumeSlider.value = Number(volumeSlider.value) + 0.1;
+              handleVolumeSliderInput();
+            }
+            break;
+          case "ArrowDown":
+            if (volumeSlider) {
+              volumeSlider.value = volumeSlider.value - 0.1;
+              handleVolumeSliderInput();
+            }
+            break;
+          case "m":
+            handleVolumeVideo();
+            break;
+          case "f":
+            handleFullscreenClick();
+            break;
+          case "l":
+            handleLoop();
+            break;
+          default:
+            break;
         }
-      });
+      }
+      // });
     }
   }
 
