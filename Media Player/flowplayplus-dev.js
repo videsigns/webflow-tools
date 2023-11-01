@@ -16,24 +16,29 @@ currentScript.parentNode.insertBefore(vimeoScript, currentScript);
 currentScript.parentNode.insertBefore(youtubeScript, currentScript);
 
 function pauseAllPlayers() {
-  const allVideos = document.querySelectorAll("video, iframe");
+  const videoWrapper = document.querySelectorAll('[f-data-video="wrapper"]');
 
-  allVideos.forEach((video) => {
-    if (video.tagName === "VIDEO") {
-      video.pause();
-    } else if (video.tagName === "IFRAME") {
-      // Check if it's a YouTube or Vimeo iframe
-      const src = video.getAttribute("src");
+  videoWrapper.forEach((vid) => {
+    let video = vid.querySelector("video, iframe");
 
-      if (src.includes("youtube")) {
-        // For YouTube, post a message to pause the video
-        video.contentWindow.postMessage(
-          '{"event":"command","func":"pauseVideo","args":""}',
-          "*",
-        );
-      } else if (src.includes("vimeo")) {
-        // For Vimeo, post a message to pause the video
-        video.contentWindow.postMessage('{"method":"pause"}', "*");
+    if (video) {
+      if (video.tagName === "VIDEO") {
+        video.pause();
+      } else if (video.tagName === "IFRAME") {
+        // Check if it's a YouTube or Vimeo iframe
+        const src = video.getAttribute("src");
+        if (src) {
+          if (src.includes("youtube")) {
+            // For YouTube, post a message to pause the video
+            video.contentWindow.postMessage(
+              '{"event":"command","func":"pauseVideo","args":""}',
+              "*",
+            );
+          } else if (src.includes("vimeo")) {
+            // For Vimeo, post a message to pause the video
+            video.contentWindow.postMessage('{"method":"pause"}', "*");
+          }
+        }
       }
     }
   });
@@ -238,9 +243,15 @@ function initializeVideoPlayer(video) {
   function toggleFullscreen() {
     // Toggle fullscreen mode
     if (!document.fullscreenElement) {
-      video.requestFullscreen().catch((err) => {
-        console.error("Fullscreen request failed:", err);
-      });
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      } else if (video.mozRequestFullScreen) {
+        // Firefox
+        video.mozRequestFullScreen();
+      } else if (video.webkitRequestFullscreen) {
+        // Chrome, Safari, and Opera
+        video.webkitRequestFullscreen();
+      }
     } else {
       document.exitFullscreen();
     }
@@ -306,10 +317,8 @@ function initializeVideoPlayer(video) {
     function handleProgressBarMove(event) {
       event.preventDefault();
       if (isDragging) {
-        throttle(() => {
-          const eventObject = isTouchDevice ? event.touches[0] : event;
-          handleProgressBarClick(eventObject);
-        }, throttleTime);
+        const eventObject = isTouchDevice ? event.touches[0] : event;
+        handleProgressBarClick(eventObject);
       }
     }
 
@@ -325,8 +334,8 @@ function initializeVideoPlayer(video) {
       progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      progressBar.addEventListener("mousemove", handleProgressBarMove);
-      progressBar.addEventListener("mouseup", handleProgressBarEnd);
+      wrapper.addEventListener("mousemove", handleProgressBarMove);
+      wrapper.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -864,7 +873,7 @@ function initializeYoutubePlayer(youtube) {
 
     function handleProgressBarStart(event) {
       event.preventDefault();
-      //pauseVideo();
+      // Pause video or other actions if needed.
       isDragging = true;
       const eventObject = isTouchDevice ? event.touches[0] : event;
       handleProgressBarClick(eventObject);
@@ -892,8 +901,8 @@ function initializeYoutubePlayer(youtube) {
       progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      progressBar.addEventListener("mousemove", handleProgressBarMove);
-      progressBar.addEventListener("mouseup", handleProgressBarEnd);
+      document.addEventListener("mousemove", handleProgressBarMove); // Add this event listener to the entire document
+      document.addEventListener("mouseup", handleProgressBarEnd); // Add this event listener to the entire document
     }
   }
 
@@ -1151,16 +1160,22 @@ function initializeVimeoPlayer(vimeo) {
   const playIcon = wrapper.querySelector('[f-data-video="play-icon"]');
   const progress = wrapper.querySelector('[f-data-video="progress"]');
   const progressBar = wrapper.querySelector('[f-data-video="progress-bar"]');
+  const videoLoading = wrapper.querySelector('[f-data-video="loading"]');
   const fullscreenBtn = wrapper.querySelector('[f-data-video="fullscreen"]');
   const minimizeBtn = wrapper.querySelector('[f-data-video="minimize"]');
   const currentTime = wrapper.querySelector('[f-data-video="current-time"]');
   const duration = wrapper.querySelector('[f-data-video="duration"]');
   const volumeSlider = wrapper.querySelector('[f-data-video="volume-slider"]');
   const volumeBtn = wrapper.querySelector('[f-data-video="volume-button"]');
+  const titles = wrapper.querySelectorAll('[f-data-video="title"]');
   const playbackSpeedBtn = wrapper.querySelectorAll("[f-data-video-speed]");
   const vidQualityBtn = wrapper.querySelectorAll("[f-data-video-quality]");
   const qualityText = wrapper.querySelector('[f-data-video="quality-text"]');
   const speedText = wrapper.querySelector('[f-data-video="speed-text"]');
+  const caption = wrapper.querySelector('[f-data-video="caption"]');
+  const captionDisabled = wrapper.querySelector(
+    '[f-data-video="caption-disabled"]',
+  );
   const posterClickOnce = wrapper.querySelector("[f-data-poster-once]")
     ? wrapper
         .querySelector("[f-data-poster-once]")
@@ -1191,7 +1206,7 @@ function initializeVimeoPlayer(vimeo) {
   let posterClicked = false;
 
   var video = new Vimeo.Player(vimeo, options);
-  console.log("video loaded", video);
+
   function defaultBehavior() {
     // Hide certain elements and set initial volume
     if (pauseIcon) {
@@ -1217,6 +1232,48 @@ function initializeVimeoPlayer(vimeo) {
     if (loader) {
       loader.style.display = "none";
     }
+
+    if (titles) {
+      video.getVideoTitle().then((vidTitle) => {
+        console.log(vidTitle);
+        console.log(titles);
+        titles.forEach((title) => {
+          title.textContent = vidTitle;
+        });
+      });
+    }
+
+    video.getTextTracks().then(function (tracks) {
+      // `tracks` indicates an array of text track objects
+      console.log(tracks);
+    });
+
+    if (videoLoading) {
+      videoLoading.style.width = "0%";
+    }
+
+    if (progress) {
+      videoLoading.style.width = "0%";
+    }
+
+    video
+      .enableTextTrack("en")
+      .then(function (track) {
+        if (caption) {
+          caption.style.display = "block";
+        }
+        if (captionDisabled) {
+          captionDisabled.style.display = "none";
+        }
+      })
+      .catch(function (error) {
+        if (caption) {
+          caption.style.display = "none";
+        }
+        if (captionDisabled) {
+          captionDisabled.style.display = "none";
+        }
+      });
   }
 
   function formatTime(time) {
@@ -1334,10 +1391,14 @@ function initializeVimeoPlayer(vimeo) {
     const progressBarWidth = progressBar.offsetWidth;
     const clickX = e.offsetX;
     const progressPercentage = (clickX / progressBarWidth) * 100;
-    progress.style.width = progressPercentage;
-    const newTime = (progressPercentage / 100) * videoDurationDefault;
-    video.setCurrentTime(newTime).then(playVideo);
-    //handleTimeUpdate();
+
+    if (progressPercentage <= 100) {
+      progress.style.width = progressPercentage + "%";
+
+      const newTime = (progressPercentage / 100) * videoDurationDefault;
+      video.setCurrentTime(newTime).then(playVideo);
+      //handleTimeUpdate();
+    }
   }
 
   video.on("bufferstart", function () {
@@ -1345,33 +1406,26 @@ function initializeVimeoPlayer(vimeo) {
     if (loader) {
       loader.style.display = "block";
     }
+    if (posterBtn) {
+      posterBtn.style.display = "none";
+    }
   });
 
   video.on("bufferend", function () {
     if (loader) {
       loader.style.display = "none";
     }
+    if (posterBtn) {
+      posterBtn.style.display = "block";
+    }
   });
 
   if (progressBar) {
-    isDragging = false;
-    let isThrottled = false;
-
-    const throttleTime = 50; // Adjust this value for smoother or faster tracking
-
-    function throttle(callback, delay) {
-      if (!isThrottled) {
-        callback();
-        isThrottled = true;
-        setTimeout(() => {
-          isThrottled = false;
-        }, delay);
-      }
-    }
+    let isDragging = false;
 
     function handleProgressBarStart(event) {
       event.preventDefault();
-      //pauseVideo();
+      // Pause video or other actions if needed.
       isDragging = true;
       const eventObject = isTouchDevice ? event.touches[0] : event;
       handleProgressBarClick(eventObject);
@@ -1380,16 +1434,26 @@ function initializeVimeoPlayer(vimeo) {
     function handleProgressBarMove(event) {
       event.preventDefault();
       if (isDragging) {
-        throttle(() => {
-          const eventObject = isTouchDevice ? event.touches[0] : event;
-          handleProgressBarClick(eventObject);
-        }, throttleTime);
+        const eventObject = isTouchDevice ? event.touches[0] : event;
+        handleProgressBarClick(eventObject);
       }
     }
 
-    function handleProgressBarEnd() {
+    // Add this event listener to your code
+    video.on("progress", function (data) {
+      console.log(data);
+      if (videoDurationDefault > 0) {
+        const loadedPercentage = (data.seconds / data.duration) * 100;
+        console.log(loadedPercentage);
+        if (videoLoading) {
+          videoLoading.style.width = `${loadedPercentage}%`;
+        }
+      }
+    });
+
+    const handleProgressBarEnd = () => {
       isDragging = false;
-    }
+    };
 
     const isTouchDevice = "ontouchstart" in document.documentElement;
 
@@ -1399,8 +1463,8 @@ function initializeVimeoPlayer(vimeo) {
       progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      progressBar.addEventListener("mousemove", handleProgressBarMove);
-      progressBar.addEventListener("mouseup", handleProgressBarEnd);
+      document.addEventListener("mousemove", handleProgressBarMove);
+      document.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -1487,6 +1551,28 @@ function initializeVimeoPlayer(vimeo) {
     });
   }
 
+  function handleCaptionEnabled() {
+    video.disableTextTrack().then(function () {
+      if (caption) {
+        caption.style.display = "none";
+      }
+      if (captionDisabled) {
+        captionDisabled.style.display = "block";
+      }
+    });
+  }
+
+  function handleCaptionDisabled() {
+    video.enableTextTrack("en").then(function (track) {
+      if (caption) {
+        caption.style.display = "block";
+      }
+      if (captionDisabled) {
+        captionDisabled.style.display = "none";
+      }
+    });
+  }
+
   function handleKeyboardEvent(event) {
     if (keyboardShortcuts) {
       const key = event.key;
@@ -1557,6 +1643,12 @@ function initializeVimeoPlayer(vimeo) {
   }
 
   // Add event listeners
+  if (caption) {
+    caption.addEventListener("click", handleCaptionEnabled);
+  }
+  if (captionDisabled) {
+    captionDisabled.addEventListener("click", handleCaptionDisabled);
+  }
   if (posterBtn) {
     posterBtn.addEventListener("click", handlePosterClick);
   }
