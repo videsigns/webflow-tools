@@ -95,7 +95,7 @@ function initializeVideoPlayer(video) {
         .getAttribute("f-data-poster-once")
     : false;
   const loader = wrapper.querySelector('[f-data-video="loader"]');
-  console.log("poster once", posterClickOnce);
+  // console.log("poster once", posterClickOnce);
   //variables
   let track = 0;
   const forwardTime = 10; // Amount of time to forward (in seconds)
@@ -144,7 +144,9 @@ function initializeVideoPlayer(video) {
     if (previewWrapper) {
       previewWrapper.style.opacity = 0;
     }
-    video.volume = volumeSlider ? volumeSlider.value : 1;
+    if (volumeSlider) {
+      video.volume = volumeSlider ? volumeSlider.value : 1;
+    }
     if (loader) {
       loader.style.display = "none";
     }
@@ -192,7 +194,7 @@ function initializeVideoPlayer(video) {
     // Pause the video and update UI
     video.pause();
     currentVideo = video;
-    console.log("current video:", currentVideo);
+    // console.log("current video:", currentVideo);
 
     if (playBtn) {
       playBtn.style.display = "block";
@@ -340,7 +342,7 @@ function initializeVideoPlayer(video) {
   }
 
   function handlePlaybackSpeed(speed) {
-    console.log(Number(speed));
+    // console.log(Number(speed));
     video.playbackRate = speed;
 
     if (speedText) {
@@ -379,8 +381,12 @@ function initializeVideoPlayer(video) {
   function handleTimeUpdate() {
     // Update progress bar, current time, and handle video end
     track = (video.currentTime / video.duration) * 100;
-    progress.style.width = `${track}%`;
-    currentTime.textContent = formatTime(video.currentTime);
+    if (progress) {
+      progress.style.width = `${track}%`;
+    }
+    if (currentTime) {
+      currentTime.textContent = formatTime(video.currentTime);
+    }
     if (video.currentTime >= video.duration) {
       if (replayBtn) {
         replayBtn.style.display = "block";
@@ -425,13 +431,13 @@ function initializeVideoPlayer(video) {
 
   // Keyboard controls
   function handleKeyboardControls(event) {
-    console.log(video);
+    // console.log(video);
     if (keyboardShortcuts) {
       const key = event.key.toLowerCase();
       if (key === " " || key === "arrowdown" || key === "arrowup") {
         event.preventDefault();
       }
-      console.log(video === currentVideo, video, currentVideo);
+      // console.log(video === currentVideo, video, currentVideo);
       // currentVideo.pause();
       // video = currentVideo;
       if (video === currentVideo) {
@@ -559,7 +565,7 @@ function initializeVideoPlayer(video) {
       button.addEventListener("click", function () {
         var speed = this.getAttribute("f-data-video-speed");
         // Do something with the speed value
-        console.log("Clicked on button with speed:", speed);
+        // console.log("Clicked on button with speed:", speed);
         handlePlaybackSpeed(speed);
       });
     });
@@ -684,7 +690,7 @@ function initializeYoutubePlayer(youtube) {
   }
 
   function createPlayer() {
-    console.log(wrapper.offsetWidth, wrapper.offsetHeight);
+    // console.log(wrapper.offsetWidth, wrapper.offsetHeight);
     const player = new YT.Player(youtube, {
       width: videoWidth,
       height: videoHeight,
@@ -804,15 +810,15 @@ function initializeYoutubePlayer(youtube) {
   }
 
   function handleTimeUpdate() {
-    videoDuration = video.getCurrentTime() + 1;
-
+    if (videoDuration) {
+      videoDuration = video.getCurrentTime() + 1;
+    }
     if (currentTime) {
       currentTime.textContent = formatTime(videoDuration);
     }
     if (duration) {
       duration.textContent = formatTime(videoDurationDefault);
     }
-
     const progressPercentage = (videoDuration / videoDurationDefault) * 100;
     if (progress) {
       progress.style.width = progressPercentage + "%";
@@ -949,7 +955,7 @@ function initializeYoutubePlayer(youtube) {
 
   function handleVolumeVideo() {
     volume = video.getVolume();
-    console.log(volume);
+    // console.log(volume);
     if (volumeSlider) {
       if (volume > 0) {
         video.setVolume(0);
@@ -1235,8 +1241,8 @@ function initializeVimeoPlayer(vimeo) {
 
     if (titles) {
       video.getVideoTitle().then((vidTitle) => {
-        console.log(vidTitle);
-        console.log(titles);
+        // console.log(vidTitle);
+        // console.log(titles);
         titles.forEach((title) => {
           title.textContent = vidTitle;
         });
@@ -1245,7 +1251,7 @@ function initializeVimeoPlayer(vimeo) {
 
     video.getTextTracks().then(function (tracks) {
       // `tracks` indicates an array of text track objects
-      console.log(tracks);
+      // console.log(tracks);
     });
 
     if (videoLoading) {
@@ -1376,9 +1382,13 @@ function initializeVimeoPlayer(vimeo) {
 
   function handleTimeUpdate(data) {
     // Update progress bar, current time, and handle video end
-    currentTime.textContent = formatTime(data.seconds + 1);
+    if (currentTime) {
+      currentTime.textContent = formatTime(data.seconds + 1);
+    }
     track = data.percent * 100 + "%";
-    progress.style.width = track;
+    if (progress) {
+      progress.style.width = track;
+    }
   }
 
   function handleVideoEnded() {
@@ -1441,10 +1451,10 @@ function initializeVimeoPlayer(vimeo) {
 
     // Add this event listener to your code
     video.on("progress", function (data) {
-      console.log(data);
+      // console.log(data);
       if (videoDurationDefault > 0) {
         const loadedPercentage = (data.seconds / data.duration) * 100;
-        console.log(loadedPercentage);
+        // console.log(loadedPercentage);
         if (videoLoading) {
           videoLoading.style.width = `${loadedPercentage}%`;
         }
