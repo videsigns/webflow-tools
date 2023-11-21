@@ -810,9 +810,8 @@ function initializeYoutubePlayer(youtube) {
   }
 
   function handleTimeUpdate() {
-    if (videoDuration) {
-      videoDuration = video.getCurrentTime() + 1;
-    }
+    videoDuration = video.getCurrentTime() + 1;
+
     if (currentTime) {
       currentTime.textContent = formatTime(videoDuration);
     }
@@ -907,8 +906,8 @@ function initializeYoutubePlayer(youtube) {
       progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove); // Add this event listener to the entire document
-      document.addEventListener("mouseup", handleProgressBarEnd); // Add this event listener to the entire document
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
@@ -955,7 +954,6 @@ function initializeYoutubePlayer(youtube) {
 
   function handleVolumeVideo() {
     volume = video.getVolume();
-    // console.log(volume);
     if (volumeSlider) {
       if (volume > 0) {
         video.setVolume(0);
@@ -1144,6 +1142,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 });
+
 /////////////////////////////////END OF YOUTUBE/////////////////////////////////
 
 ////////////////////////////////VIMEO VIDEO////////////////////////////////////
@@ -1249,11 +1248,6 @@ function initializeVimeoPlayer(vimeo) {
       });
     }
 
-    video.getTextTracks().then(function (tracks) {
-      // `tracks` indicates an array of text track objects
-      // console.log(tracks);
-    });
-
     if (videoLoading) {
       videoLoading.style.width = "0%";
     }
@@ -1261,25 +1255,52 @@ function initializeVimeoPlayer(vimeo) {
     if (progress) {
       videoLoading.style.width = "0%";
     }
+    video.disableTextTrack();
+    video.getTextTracks().then(function (tracks) {
+      // `tracks` indicates an array of text track objects
+      if (tracks.length > 0) {
+        var originalElement = wrapper.querySelector("[f-data-video-caption]");
+        var parentElement = wrapper.querySelector(
+          '[f-data-video="caption-wrapper"]',
+        );
 
-    video
-      .enableTextTrack("en")
-      .then(function (track) {
-        if (caption) {
-          caption.style.display = "block";
-        }
-        if (captionDisabled) {
-          captionDisabled.style.display = "none";
-        }
-      })
-      .catch(function (error) {
-        if (caption) {
-          caption.style.display = "none";
-        }
-        if (captionDisabled) {
-          captionDisabled.style.display = "none";
-        }
-      });
+        tracks.forEach(function (caption) {
+          var clonedElement = originalElement.cloneNode(true);
+
+          clonedElement.setAttribute("f-data-video-caption", caption.language);
+          clonedElement.textContent = caption.label;
+          // console.log(clonedElement);
+
+          parentElement.appendChild(clonedElement);
+
+          let videoCaptions = wrapper.querySelectorAll(
+            "[f-data-video-caption]",
+          );
+          const selectedLang = wrapper.querySelector(
+            '[f-data-video="caption-lang"]',
+          );
+          videoCaptions.forEach((videoCaption) => {
+            videoCaption.addEventListener("click", function () {
+              const lang = this.getAttribute("f-data-video-caption");
+              // console.log(lang);
+              if (lang !== "none") {
+                video.enableTextTrack(lang);
+              } else {
+                video.disableTextTrack();
+              }
+              selectedLang.textContent = capitalizeFirstLetter(lang);
+            });
+          });
+        });
+      }
+    });
+  }
+
+  function capitalizeFirstLetter(str) {
+    if (typeof str !== "string") {
+      return str;
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   function formatTime(time) {

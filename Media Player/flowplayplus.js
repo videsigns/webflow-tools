@@ -1,6 +1,6 @@
-// 2nd Nov
+// 21st Nov
 // Bug fixes
-// Time update bug
+// Youtube fix
 
 const _0x2644b4 = _0x3faf;
 (function (_0x4603a4, _0x1051ff) {
