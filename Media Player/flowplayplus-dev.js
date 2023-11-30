@@ -167,13 +167,13 @@ function initializeVideoPlayer(video) {
       playIcon.style.display = "none";
     }
     if (pauseIcon) {
-      pauseIcon.style.display = "block";
+      pauseIcon.style.display = "";
     }
     // if (posterBtn) {
     //   posterBtn.style.opacity = "0";
     // }
     if (pauseBtn) {
-      pauseBtn.style.display = "block";
+      pauseBtn.style.display = "";
     }
     if (replayBtn) {
       replayBtn.style.display = "none";
@@ -197,10 +197,10 @@ function initializeVideoPlayer(video) {
     // console.log("current video:", currentVideo);
 
     if (playBtn) {
-      playBtn.style.display = "block";
+      playBtn.style.display = "";
     }
     if (playIcon) {
-      playIcon.style.display = "block";
+      playIcon.style.display = "";
     }
     if (pauseIcon) {
       pauseIcon.style.display = "none";
@@ -224,7 +224,7 @@ function initializeVideoPlayer(video) {
 
   video.addEventListener("loadstart", () => {
     if (loader) {
-      loader.style.display = "block";
+      loader.style.display = "";
     }
   });
 
@@ -389,7 +389,7 @@ function initializeVideoPlayer(video) {
     }
     if (video.currentTime >= video.duration) {
       if (replayBtn) {
-        replayBtn.style.display = "block";
+        replayBtn.style.display = "";
       }
       pauseVideo();
     }
@@ -749,7 +749,7 @@ function initializeYoutubePlayer(youtube) {
       poster.style.display = "";
     }
     if (pauseBtn) {
-      pauseBtn.style.display = "block";
+      pauseBtn.style.display = "";
     }
     if (replayBtn) {
       replayBtn.style.display = "none";
@@ -769,10 +769,10 @@ function initializeYoutubePlayer(youtube) {
   function pauseVideoUI() {
     // Pause the video and update UI
     if (playBtn) {
-      playBtn.style.display = "block";
+      playBtn.style.display = "";
     }
     if (playIcon) {
-      playIcon.style.display = "block";
+      playIcon.style.display = "";
     }
     if (pauseIcon) {
       pauseIcon.style.display = "none";
@@ -839,7 +839,7 @@ function initializeYoutubePlayer(youtube) {
 
   function handleVideoEnded() {
     if (replayBtn) {
-      replayBtn.style.display = "block";
+      replayBtn.style.display = "";
     }
     if (poster) {
       poster.style.display = "none";
@@ -1118,7 +1118,7 @@ function initializeYoutubePlayer(youtube) {
       clearInterval(handleTimeUpdate); // Stop updating progress when ended
     } else if (event.data === YT.PlayerState.BUFFERING) {
       if (loader) {
-        loader.style.display = "block";
+        loader.style.display = "";
       }
     }
   }
@@ -1331,7 +1331,7 @@ function initializeVimeoPlayer(vimeo) {
     //   posterBtn.style.opacity = "0";
     // }
     if (pauseBtn) {
-      pauseBtn.style.display = "block";
+      pauseBtn.style.display = "";
     }
     if (replayBtn) {
       replayBtn.style.display = "none";
@@ -1353,10 +1353,10 @@ function initializeVimeoPlayer(vimeo) {
     // Pause the video and update UI
     video.pause();
     if (playBtn) {
-      playBtn.style.display = "block";
+      playBtn.style.display = "";
     }
     if (playIcon) {
-      playIcon.style.display = "block";
+      playIcon.style.display = "";
     }
     if (pauseIcon) {
       pauseIcon.style.display = "none";
@@ -1413,7 +1413,7 @@ function initializeVimeoPlayer(vimeo) {
   }
 
   function handleVideoEnded() {
-    replayBtn.style.display = "block";
+    replayBtn.style.display = "";
     pauseVideo();
   }
 
@@ -1435,7 +1435,7 @@ function initializeVimeoPlayer(vimeo) {
   video.on("bufferstart", function () {
     // Show the loading bar when buffering starts
     if (loader) {
-      loader.style.display = "block";
+      loader.style.display = "";
     }
     if (posterBtn) {
       posterBtn.style.display = "none";
@@ -1447,7 +1447,7 @@ function initializeVimeoPlayer(vimeo) {
       loader.style.display = "none";
     }
     if (posterBtn) {
-      posterBtn.style.display = "block";
+      posterBtn.style.display = "";
     }
   });
 
@@ -1588,7 +1588,7 @@ function initializeVimeoPlayer(vimeo) {
         caption.style.display = "none";
       }
       if (captionDisabled) {
-        captionDisabled.style.display = "block";
+        captionDisabled.style.display = "";
       }
     });
   }
@@ -1596,7 +1596,7 @@ function initializeVimeoPlayer(vimeo) {
   function handleCaptionDisabled() {
     video.enableTextTrack("en").then(function (track) {
       if (caption) {
-        caption.style.display = "block";
+        caption.style.display = "";
       }
       if (captionDisabled) {
         captionDisabled.style.display = "none";

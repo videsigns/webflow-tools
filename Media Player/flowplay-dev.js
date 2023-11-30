@@ -66,13 +66,19 @@ function initializeVideoPlayer(video) {
   const previewWrapper = wrapper.querySelector(
     '[f-data-video="preview-wrapper"]',
   );
+  const posterClickOnce = wrapper.querySelector("[f-data-poster-once]")
+    ? wrapper
+        .querySelector("[f-data-poster-once]")
+        .getAttribute("f-data-poster-once")
+    : false;
 
   //variables
   let track = 0;
   const forwardTime = 10; // Amount of time to forward (in seconds)
   const backwardTime = 10; // Amount of time to backward (in seconds)
-  var curTime = 0;
+  let curTime = 0;
   let isDragging = false;
+  let posterClicked = false;
   const previewOffsetLeft = wrapper.querySelector(
     "[f-data-video-preview-offset-left]",
   )
@@ -122,7 +128,7 @@ function initializeVideoPlayer(video) {
     pauseAllPlayers();
     video.play();
     currentVideo = video;
-    console.log("current video:", currentVideo);
+    // console.log("current video:", currentVideo);
 
     // console.log(currentVideo === video);
     if (playBtn) {
@@ -132,19 +138,26 @@ function initializeVideoPlayer(video) {
       playIcon.style.display = "none";
     }
     if (pauseIcon) {
-      pauseIcon.style.display = "block";
+      pauseIcon.style.display = "";
     }
     // if (posterBtn) {
     //   posterBtn.style.opacity = "0";
     // }
     if (pauseBtn) {
-      pauseBtn.style.display = "block";
+      pauseBtn.style.display = "";
     }
     if (replayBtn) {
       replayBtn.style.display = "none";
     }
     if (posterBg) {
-      posterBg.style.display = "none";
+      console.log(posterClicked);
+      if (!posterClicked) {
+        posterBg.style.display = "none";
+        if (posterClickOnce) {
+          posterClicked = true;
+          console.log(posterClicked);
+        }
+      }
     }
   }
 
@@ -155,10 +168,10 @@ function initializeVideoPlayer(video) {
     console.log("current video:", currentVideo);
 
     if (playBtn) {
-      playBtn.style.display = "block";
+      playBtn.style.display = "";
     }
     if (playIcon) {
-      playIcon.style.display = "block";
+      playIcon.style.display = "";
     }
     if (pauseIcon) {
       pauseIcon.style.display = "none";
@@ -170,7 +183,14 @@ function initializeVideoPlayer(video) {
       pauseBtn.style.display = "none";
     }
     if (posterBg) {
-      posterBg.style.display = "";
+      console.log(posterClicked);
+      if (!posterClicked) {
+        posterBg.style.display = "";
+        if (posterClickOnce) {
+          posterClicked = true;
+          console.log(posterClicked);
+        }
+      }
     }
   }
 
@@ -321,7 +341,7 @@ function initializeVideoPlayer(video) {
     currentTime.textContent = formatTime(video.currentTime);
     if (video.currentTime >= video.duration) {
       if (replayBtn) {
-        replayBtn.style.display = "block";
+        replayBtn.style.display = "";
       }
       pauseVideo();
     }
