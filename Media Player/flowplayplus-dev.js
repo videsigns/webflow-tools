@@ -278,7 +278,10 @@ function initializeVideoPlayer(video) {
     if (video.buffered.length > 0) {
       const bufferedEnd = e.target.buffered.end(e.target.buffered.length - 1); // Get the end time of the buffered range
       const bufferedPercentage = (bufferedEnd / video.duration) * 100;
-      videoLoading.style.width = `${bufferedPercentage}%`;
+
+      if (videoLoading) {
+        videoLoading.style.width = `${bufferedPercentage}%`;
+      }
     }
   }
 
@@ -1253,7 +1256,9 @@ function initializeVimeoPlayer(vimeo) {
     }
 
     if (progress) {
-      videoLoading.style.width = "0%";
+      if (videoLoading) {
+        videoLoading.style.width = "0%";
+      }
     }
     video.disableTextTrack();
     video.getTextTracks().then(function (tracks) {
