@@ -278,7 +278,10 @@ function initializeVideoPlayer(video) {
     if (video.buffered.length > 0) {
       const bufferedEnd = e.target.buffered.end(e.target.buffered.length - 1); // Get the end time of the buffered range
       const bufferedPercentage = (bufferedEnd / video.duration) * 100;
-      videoLoading.style.width = `${bufferedPercentage}%`;
+
+      if (videoLoading) {
+        videoLoading.style.width = `${bufferedPercentage}%`;
+      }
     }
   }
 
@@ -1192,6 +1195,27 @@ function initializeVimeoPlayer(vimeo) {
   const videoID = vimeo.getAttribute("f-data-video-id");
   const videoWidth = wrapper.offsetWidth;
   const videoHeight = wrapper.offsetHeight;
+  const muted = wrapper.querySelector("[f-data-video-muted]")
+    ? Boolean(
+        wrapper
+          .querySelector("[f-data-video-muted]")
+          .getAttribute("f-data-video-muted"),
+      )
+    : false;
+  const loop = wrapper.querySelector("[f-data-video-loop]")
+    ? Boolean(
+        wrapper
+          .querySelector("[f-data-video-loop]")
+          .getAttribute("f-data-video-loop"),
+      )
+    : false;
+  const autoplay = wrapper.querySelector("[f-data-video-autoplay]")
+    ? Boolean(
+        wrapper
+          .querySelector("[f-data-video-autoplay]")
+          .getAttribute("f-data-video-autoplay"),
+      )
+    : false;
   const videoControls = vimeo.getAttribute("f-data-video-controls");
   const forwardTime = 5; // Amount of time to forward (in seconds)
   const backwardTime = 5; // Amount of time to backward (in seconds)
@@ -1207,10 +1231,14 @@ function initializeVimeoPlayer(vimeo) {
     height: videoHeight,
     controls: videoControls,
     texttrack: "en",
+    autoplay: autoplay,
+    muted: muted,
+    loop: loop,
   };
   let posterClicked = false;
 
   var video = new Vimeo.Player(vimeo, options);
+  // update play video ui if set to autoplay
 
   function defaultBehavior() {
     // Hide certain elements and set initial volume
@@ -1234,14 +1262,23 @@ function initializeVimeoPlayer(vimeo) {
         duration.textContent = videoDuration;
       }
     });
+
+    if (autoplay) {
+      playBtn.click();
+      console.log("auto playing");
+    }
+
+    if (muted) {
+      volumeBtn.click();
+      volumeSlider.value = 0;
+    }
+
     if (loader) {
       loader.style.display = "none";
     }
 
     if (titles) {
       video.getVideoTitle().then((vidTitle) => {
-        // console.log(vidTitle);
-        // console.log(titles);
         titles.forEach((title) => {
           title.textContent = vidTitle;
         });
@@ -1253,7 +1290,9 @@ function initializeVimeoPlayer(vimeo) {
     }
 
     if (progress) {
-      videoLoading.style.width = "0%";
+      if (videoLoading) {
+        videoLoading.style.width = "0%";
+      }
     }
     video.disableTextTrack();
     video.getTextTracks().then(function (tracks) {
@@ -1325,12 +1364,14 @@ function initializeVimeoPlayer(vimeo) {
       playIcon.style.display = "none";
     }
     if (pauseIcon) {
+      pauseIcon.style.display = "none";
       pauseIcon.style.display = "";
     }
     // if (posterBtn) {
     //   posterBtn.style.opacity = "0";
     // }
     if (pauseBtn) {
+      pauseBtn.style.display = "none";
       pauseBtn.style.display = "";
     }
     if (replayBtn) {
@@ -1452,8 +1493,6 @@ function initializeVimeoPlayer(vimeo) {
   });
 
   if (progressBar) {
-    let isDragging = false;
-
     function handleProgressBarStart(event) {
       event.preventDefault();
       // Pause video or other actions if needed.
@@ -1494,14 +1533,15 @@ function initializeVimeoPlayer(vimeo) {
       progressBar.addEventListener("touchend", handleProgressBarEnd);
     } else {
       progressBar.addEventListener("mousedown", handleProgressBarStart);
-      document.addEventListener("mousemove", handleProgressBarMove);
-      document.addEventListener("mouseup", handleProgressBarEnd);
+      progressBar.addEventListener("mousemove", handleProgressBarMove);
+      progressBar.addEventListener("mouseup", handleProgressBarEnd);
     }
   }
 
   function handleVolumeSliderInput() {
     // Handle volume slider input
     if (volumeSlider) {
+      console.log(volumeSlider.value);
       video.setVolume(volumeSlider.value);
       video.getVolume().then((volume) => {
         if (volume < 0.1) {
