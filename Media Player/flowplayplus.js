@@ -1,6 +1,6 @@
 // 8th December 2023
 // Feature update
-// Closed Caption, Volume drag
+// Closed Caption, Volume drag, Autoplay on scroll fix
 
 const _0x47e342 = _0x5d05;
 (function (_0x57ea5c, _0x48610b) {
