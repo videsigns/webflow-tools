@@ -1184,6 +1184,7 @@ function initializeVimeoPlayer(vimeo) {
   const captionDisabled = wrapper.querySelector(
     '[f-data-video="caption-disabled"]',
   );
+  const selectedLang = wrapper.querySelector('[f-data-video="caption-lang"]');
   const posterClickOnce = wrapper.querySelector("[f-data-poster-once]")
     ? wrapper
         .querySelector("[f-data-poster-once]")
@@ -1216,6 +1217,15 @@ function initializeVimeoPlayer(vimeo) {
           .getAttribute("f-data-video-autoplay"),
       )
     : false;
+  const autoPlayOnScroll = wrapper.querySelector(
+    "[f-data-video-autoplay-scroll]",
+  )
+    ? Boolean(
+        wrapper
+          .querySelector("[f-data-video-autoplay-scroll]")
+          .getAttribute("f-data-video-autoplay-scroll"),
+      )
+    : false;
   const videoControls = vimeo.getAttribute("f-data-video-controls");
   const forwardTime = 5; // Amount of time to forward (in seconds)
   const backwardTime = 5; // Amount of time to backward (in seconds)
@@ -1225,20 +1235,46 @@ function initializeVimeoPlayer(vimeo) {
   var track = 0;
   var quality = "auto";
   var speed = 1;
+  let selectedCaptionLanguage = "en";
   var options = {
     id: videoID,
     width: videoWidth,
     height: videoHeight,
     controls: videoControls,
     texttrack: "en",
-    autoplay: autoplay,
     muted: muted,
     loop: loop,
+    autoplay: true,
   };
   let posterClicked = false;
 
   var video = new Vimeo.Player(vimeo, options);
   // update play video ui if set to autoplay
+
+  const optionsScroll = {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.5,
+  };
+
+  const observer = new IntersectionObserver(handleIntersection, optionsScroll);
+
+  function handleIntersection(entries) {
+    const entry = entries[0];
+
+    if (entry.isIntersecting) {
+      // Video is in the viewport, autoplay
+      playVideo();
+    } else {
+      // Video is not in the viewport, pause
+      pauseVideo();
+    }
+  }
+
+  if (autoPlayOnScroll) {
+    console.log("scroll");
+    observer.observe(vimeo);
+  }
 
   function defaultBehavior() {
     // Hide certain elements and set initial volume
@@ -1254,6 +1290,7 @@ function initializeVimeoPlayer(vimeo) {
     if (replayBtn) {
       replayBtn.style.display = "none";
     }
+
     video.volume = volumeSlider ? volumeSlider.value : 1;
     video.getDuration().then(function (x) {
       videoDuration = formatTime(x);
@@ -1264,7 +1301,7 @@ function initializeVimeoPlayer(vimeo) {
     });
 
     if (autoplay) {
-      playBtn.click();
+      playUI();
       console.log("auto playing");
     }
 
@@ -1294,44 +1331,68 @@ function initializeVimeoPlayer(vimeo) {
         videoLoading.style.width = "0%";
       }
     }
+    if (caption) {
+      console.log("caption", caption);
+      caption.style.display = "none";
+    }
     video.disableTextTrack();
-    video.getTextTracks().then(function (tracks) {
-      // `tracks` indicates an array of text track objects
-      if (tracks.length > 0) {
-        var originalElement = wrapper.querySelector("[f-data-video-caption]");
-        var parentElement = wrapper.querySelector(
-          '[f-data-video="caption-wrapper"]',
-        );
+  }
 
-        tracks.forEach(function (caption) {
-          var clonedElement = originalElement.cloneNode(true);
+  video.getTextTracks().then(function (tracks) {
+    // `tracks` indicates an array of text track objects
+    if (tracks.length > 0) {
+      var originalElement = wrapper.querySelector("[f-data-video-caption]");
+      var parentElement = wrapper.querySelector(
+        '[f-data-video="caption-wrapper"]',
+      );
 
-          clonedElement.setAttribute("f-data-video-caption", caption.language);
-          clonedElement.textContent = caption.label;
-          // console.log(clonedElement);
+      tracks.forEach(function (caption) {
+        var clonedElement = originalElement.cloneNode(true);
 
-          parentElement.appendChild(clonedElement);
+        clonedElement.setAttribute("f-data-video-caption", caption.language);
+        clonedElement.textContent = caption.label;
+        // console.log(clonedElement);
 
-          let videoCaptions = wrapper.querySelectorAll(
-            "[f-data-video-caption]",
-          );
-          const selectedLang = wrapper.querySelector(
-            '[f-data-video="caption-lang"]',
-          );
-          videoCaptions.forEach((videoCaption) => {
-            videoCaption.addEventListener("click", function () {
-              const lang = this.getAttribute("f-data-video-caption");
-              // console.log(lang);
-              if (lang !== "none") {
-                video.enableTextTrack(lang);
-              } else {
-                video.disableTextTrack();
-              }
-              selectedLang.textContent = capitalizeFirstLetter(lang);
-            });
+        parentElement.appendChild(clonedElement);
+
+        let videoCaptions = wrapper.querySelectorAll("[f-data-video-caption]");
+        videoCaptions.forEach((videoCaption) => {
+          videoCaption.addEventListener("click", function () {
+            const lang = this.getAttribute("f-data-video-caption");
+            // console.log(lang);
+            if (lang !== "none") {
+              selectedCaptionLanguage = lang;
+              handleCaptionDisabled();
+            } else {
+              handleCaptionEnabled();
+            }
           });
         });
+      });
+    }
+  });
+
+  function handleCaptionEnabled() {
+    video.disableTextTrack().then(function () {
+      if (caption) {
+        caption.style.display = "none";
       }
+      if (captionDisabled) {
+        captionDisabled.style.display = "";
+      }
+      selectedLang.textContent = "None";
+    });
+  }
+
+  function handleCaptionDisabled() {
+    video.enableTextTrack(selectedCaptionLanguage).then(function (track) {
+      if (caption) {
+        caption.style.display = "";
+      }
+      if (captionDisabled) {
+        captionDisabled.style.display = "none";
+      }
+      selectedLang.textContent = capitalizeFirstLetter(selectedCaptionLanguage);
     });
   }
 
@@ -1353,10 +1414,7 @@ function initializeVimeoPlayer(vimeo) {
     return `${minutes}:${seconds}`;
   }
 
-  function playVideo() {
-    // Play the video and update UI
-    pauseAllPlayers();
-    video.play();
+  function playUI() {
     if (playBtn) {
       playBtn.style.display = "none";
     }
@@ -1387,6 +1445,13 @@ function initializeVimeoPlayer(vimeo) {
         posterBg.style.display = "none";
       }
     }
+  }
+
+  function playVideo() {
+    // Play the video and update UI
+    pauseAllPlayers();
+    video.play();
+    playUI();
     currentVideo = video;
   }
 
@@ -1619,28 +1684,6 @@ function initializeVimeoPlayer(vimeo) {
   function handleLoop() {
     video.getLoop().then((isLooped) => {
       video.setLoop(isLooped);
-    });
-  }
-
-  function handleCaptionEnabled() {
-    video.disableTextTrack().then(function () {
-      if (caption) {
-        caption.style.display = "none";
-      }
-      if (captionDisabled) {
-        captionDisabled.style.display = "";
-      }
-    });
-  }
-
-  function handleCaptionDisabled() {
-    video.enableTextTrack("en").then(function (track) {
-      if (caption) {
-        caption.style.display = "";
-      }
-      if (captionDisabled) {
-        captionDisabled.style.display = "none";
-      }
     });
   }
 
