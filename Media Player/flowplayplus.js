@@ -1198,7 +1198,7 @@ function initializeVimeoPlayer(_0xbbd75d) {
     texttrack: "en",
     muted: _0x2ddb34,
     loop: _0x37a42f,
-    autoplay: !![],
+    autoplay: ![],
   };
   let _0x3216fe = ![];
   var _0x3e27df = new Vimeo["Player"](_0xbbd75d, _0x1cede7);
