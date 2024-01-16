@@ -1264,6 +1264,7 @@ function initializeVimeoPlayer(vimeo) {
 
     if (entry.isIntersecting) {
       // Video is in the viewport, autoplay
+      console.log("video is in viewport");
       playVideo();
     } else {
       // Video is not in the viewport, pause
@@ -1840,3 +1841,99 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 ////////////////////////////////END OF VIMEO///////////////////////////
+
+//html track video state//
+var videos = document.querySelectorAll('video[f-data-video="video-element"]');
+
+function areAnyVideosPlaying() {
+  // Select all videos with the attribute f-data-video="video-element"
+
+  // Function to check if a video is playing
+  function isVideoPlaying(video) {
+    return (
+      video.currentTime > 0 &&
+      !video.paused &&
+      !video.ended &&
+      video.readyState > 2
+    );
+  }
+
+  // Iterate over each video and check if it's playing
+  for (var i = 0; i < videos.length; i++) {
+    if (isVideoPlaying(videos[i])) {
+      return true; // Return true if any video is playing
+    }
+  }
+
+  return false; // Return false if no videos are playing
+}
+
+function indexOfPlayingVideo() {
+  // Select all videos with the attribute f-data-video="video-element"
+  var videos = document.querySelectorAll('video[f-data-video="video-element"]');
+
+  // Function to check if a video is playing
+  function isVideoPlaying(video) {
+    return (
+      video.currentTime > 0 &&
+      !video.paused &&
+      !video.ended &&
+      video.readyState > 2
+    );
+  }
+
+  // Iterate over each video and check if it's playing
+  for (var i = 0; i < videos.length; i++) {
+    if (isVideoPlaying(videos[i])) {
+      return i; // Return the index of the playing video
+    }
+  }
+
+  return -1; // Return -1 if no videos are playing
+}
+
+function updateShowPauseClass() {
+  var videos = document.querySelectorAll('video[f-data-video="video-element"]');
+
+  function isVideoPlaying(video) {
+    return (
+      video.currentTime > 0 &&
+      !video.paused &&
+      !video.ended &&
+      video.readyState > 2
+    );
+  }
+
+  videos.forEach((video) => {
+    var wrapper = video.closest('[f-data-video="wrapper"]');
+    var showPauseElements = wrapper
+      ? wrapper.querySelectorAll('[f-data-video="show-pause"]')
+      : [];
+
+    showPauseElements.forEach((element) => {
+      if (isVideoPlaying(video)) {
+        element.classList.remove("show");
+      } else {
+        element.classList.add("show");
+      }
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  updateShowPauseClass(); // Update on load
+
+  var videos = document.querySelectorAll('video[f-data-video="video-element"]');
+  videos.forEach((video) => {
+    video.addEventListener("play", () => {
+      // Remove .show class when video plays
+      var wrapper = video.closest('[f-data-video="wrapper"]');
+      var showPauseElements = wrapper
+        ? wrapper.querySelectorAll('[f-data-video="show-pause"]')
+        : [];
+      showPauseElements.forEach((element) => element.classList.remove("show"));
+    });
+    video.addEventListener("pause", updateShowPauseClass);
+    video.addEventListener("ended", updateShowPauseClass);
+  });
+});
