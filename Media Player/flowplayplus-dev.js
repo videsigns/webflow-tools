@@ -1244,7 +1244,7 @@ function initializeVimeoPlayer(vimeo) {
     texttrack: "en",
     muted: muted,
     loop: loop,
-    autoplay: false,
+    autoplay: autoplay,
   };
   let posterClicked = false;
 
