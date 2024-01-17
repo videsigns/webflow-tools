@@ -95,6 +95,8 @@ function initializeVideoPlayer(video) {
         .getAttribute("f-data-poster-once")
     : false;
   const loader = wrapper.querySelector('[f-data-video="loader"]');
+  const showPause = wrapper.querySelectorAll('[f-data-video="show-pause"]');
+  const showPlay = wrapper.querySelectorAll('[f-data-video="show-play"]');
   // console.log("poster once", posterClickOnce);
   //variables
   let track = 0;
@@ -150,6 +152,14 @@ function initializeVideoPlayer(video) {
     if (loader) {
       loader.style.display = "none";
     }
+    showPause.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
   }
 
   function playVideo() {
@@ -188,6 +198,14 @@ function initializeVideoPlayer(video) {
         posterBg.style.display = "none";
       }
     }
+    showPause.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
   }
 
   function pauseVideo() {
@@ -220,6 +238,14 @@ function initializeVideoPlayer(video) {
         posterBg.style.display = "";
       }
     }
+    showPause.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
   }
 
   video.addEventListener("loadstart", () => {
@@ -642,6 +668,8 @@ function initializeYoutubePlayer(youtube) {
         .getAttribute("f-data-poster-once")
     : false;
   const loader = wrapper.querySelector('[f-data-video="loader"]');
+  const showPause = wrapper.querySelectorAll('[f-data-video="show-pause"]');
+  const showPlay = wrapper.querySelectorAll('[f-data-video="show-play"]');
 
   // Variable
   const videoID = youtube.getAttribute("f-data-video-id");
@@ -679,6 +707,14 @@ function initializeYoutubePlayer(youtube) {
     if (loader) {
       loader.style.display = "none";
     }
+    showPause.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
   }
 
   function formatTime(time) {
@@ -767,6 +803,15 @@ function initializeYoutubePlayer(youtube) {
         posterBg.style.display = "none";
       }
     }
+
+    showPause.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
   }
 
   function pauseVideoUI() {
@@ -792,6 +837,14 @@ function initializeYoutubePlayer(youtube) {
         posterBg.style.display = "";
       }
     }
+    showPause.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
   }
 
   function playVideo() {
@@ -847,6 +900,7 @@ function initializeYoutubePlayer(youtube) {
     if (poster) {
       poster.style.display = "none";
     }
+    pauseVideoUI();
     pauseVideo();
   }
 
@@ -1191,6 +1245,8 @@ function initializeVimeoPlayer(vimeo) {
         .getAttribute("f-data-poster-once")
     : false;
   const loader = wrapper.querySelector('[f-data-video="loader"]');
+  const showPause = wrapper.querySelectorAll('[f-data-video="show-pause"]');
+  const showPlay = wrapper.querySelectorAll('[f-data-video="show-play"]');
 
   //variable
   const videoID = vimeo.getAttribute("f-data-video-id");
@@ -1334,6 +1390,14 @@ function initializeVimeoPlayer(vimeo) {
       caption.style.display = "none";
     }
     video.disableTextTrack();
+    showPause.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
   }
 
   video.getTextTracks().then(function (tracks) {
@@ -1451,6 +1515,15 @@ function initializeVimeoPlayer(vimeo) {
     video.play();
     playUI();
     currentVideo = video;
+
+    showPause.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
   }
 
   function pauseVideo() {
@@ -1480,6 +1553,15 @@ function initializeVimeoPlayer(vimeo) {
         posterBg.style.display = "";
       }
     }
+
+    showPause.forEach((el) => {
+      el.classList.add("show");
+      el.classList.remove("hide");
+    });
+    showPlay.forEach((el) => {
+      el.classList.remove("show");
+      el.classList.add("hide");
+    });
   }
 
   function handlePosterClick() {
@@ -1838,99 +1920,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 ////////////////////////////////END OF VIMEO///////////////////////////
-
-//html track video state//
-var videos = document.querySelectorAll('video[f-data-video="video-element"]');
-
-function areAnyVideosPlaying() {
-  // Select all videos with the attribute f-data-video="video-element"
-
-  // Function to check if a video is playing
-  function isVideoPlaying(video) {
-    return (
-      video.currentTime > 0 &&
-      !video.paused &&
-      !video.ended &&
-      video.readyState > 2
-    );
-  }
-
-  // Iterate over each video and check if it's playing
-  for (var i = 0; i < videos.length; i++) {
-    if (isVideoPlaying(videos[i])) {
-      return true; // Return true if any video is playing
-    }
-  }
-
-  return false; // Return false if no videos are playing
-}
-
-function indexOfPlayingVideo() {
-  // Select all videos with the attribute f-data-video="video-element"
-  var videos = document.querySelectorAll('video[f-data-video="video-element"]');
-
-  // Function to check if a video is playing
-  function isVideoPlaying(video) {
-    return (
-      video.currentTime > 0 &&
-      !video.paused &&
-      !video.ended &&
-      video.readyState > 2
-    );
-  }
-
-  // Iterate over each video and check if it's playing
-  for (var i = 0; i < videos.length; i++) {
-    if (isVideoPlaying(videos[i])) {
-      return i; // Return the index of the playing video
-    }
-  }
-
-  return -1; // Return -1 if no videos are playing
-}
-
-function updateShowPauseClass() {
-  var videos = document.querySelectorAll('video[f-data-video="video-element"]');
-
-  function isVideoPlaying(video) {
-    return (
-      video.currentTime > 0 &&
-      !video.paused &&
-      !video.ended &&
-      video.readyState > 2
-    );
-  }
-
-  videos.forEach((video) => {
-    var wrapper = video.closest('[f-data-video="wrapper"]');
-    var showPauseElements = wrapper
-      ? wrapper.querySelectorAll('[f-data-video="show-pause"]')
-      : [];
-
-    showPauseElements.forEach((element) => {
-      if (isVideoPlaying(video)) {
-        element.classList.remove("show");
-      } else {
-        element.classList.add("show");
-      }
-    });
-  });
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  updateShowPauseClass(); // Update on load
-
-  var videos = document.querySelectorAll('video[f-data-video="video-element"]');
-  videos.forEach((video) => {
-    video.addEventListener("play", () => {
-      // Remove .show class when video plays
-      var wrapper = video.closest('[f-data-video="wrapper"]');
-      var showPauseElements = wrapper
-        ? wrapper.querySelectorAll('[f-data-video="show-pause"]')
-        : [];
-      showPauseElements.forEach((element) => element.classList.remove("show"));
-    });
-    video.addEventListener("pause", updateShowPauseClass);
-    video.addEventListener("ended", updateShowPauseClass);
-  });
-});
