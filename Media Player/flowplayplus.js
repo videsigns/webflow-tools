@@ -1,6 +1,6 @@
 // 17th January 2024
 // Feature update and bug fix
-// HTML video state tracking and flowplay autoplay fix
+// HTML video state tracking and flowplay autoplay bug fix
 
 const _0x5697db = _0xcc8b;
 (function (_0x31d9b3, _0xdd2080) {
