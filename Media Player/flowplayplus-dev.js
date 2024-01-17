@@ -1210,12 +1210,9 @@ function initializeVimeoPlayer(vimeo) {
           .getAttribute("f-data-video-loop"),
       )
     : false;
-  const autoplay = wrapper.querySelector("[f-data-video-autoplay]")
-    ? Boolean(
-        wrapper
-          .querySelector("[f-data-video-autoplay]")
-          .getAttribute("f-data-video-autoplay"),
-      )
+  const autoplayElement = wrapper.querySelector("[f-data-video-autoplay]");
+  const autoplay = autoplayElement
+    ? autoplayElement.getAttribute("f-data-video-autoplay") !== "false"
     : false;
   const autoPlayOnScroll = wrapper.querySelector(
     "[f-data-video-autoplay-scroll]",
