@@ -1409,27 +1409,31 @@ function initializeVimeoPlayer(vimeo) {
       );
 
       tracks.forEach(function (caption) {
-        var clonedElement = originalElement.cloneNode(true);
+        if (originalElement) {
+          var clonedElement = originalElement.cloneNode(true);
 
-        clonedElement.setAttribute("f-data-video-caption", caption.language);
-        clonedElement.textContent = caption.label;
-        // console.log(clonedElement);
+          clonedElement.setAttribute("f-data-video-caption", caption.language);
+          clonedElement.textContent = caption.label;
+          // console.log(clonedElement);
 
-        parentElement.appendChild(clonedElement);
+          parentElement.appendChild(clonedElement);
 
-        let videoCaptions = wrapper.querySelectorAll("[f-data-video-caption]");
-        videoCaptions.forEach((videoCaption) => {
-          videoCaption.addEventListener("click", function () {
-            const lang = this.getAttribute("f-data-video-caption");
-            // console.log(lang);
-            if (lang !== "none") {
-              selectedCaptionLanguage = lang;
-              handleCaptionDisabled();
-            } else {
-              handleCaptionEnabled();
-            }
+          let videoCaptions = wrapper.querySelectorAll(
+            "[f-data-video-caption]",
+          );
+          videoCaptions.forEach((videoCaption) => {
+            videoCaption.addEventListener("click", function () {
+              const lang = this.getAttribute("f-data-video-caption");
+              // console.log(lang);
+              if (lang !== "none") {
+                selectedCaptionLanguage = lang;
+                handleCaptionDisabled();
+              } else {
+                handleCaptionEnabled();
+              }
+            });
           });
-        });
+        }
       });
     }
   });
