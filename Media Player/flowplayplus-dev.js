@@ -1354,7 +1354,7 @@ function initializeVimeoPlayer(vimeo) {
     }
 
     if (autoPlayOnScroll) {
-        console.log("scroll");
+        // console.log("scroll");
         observer.observe(vimeo);
     }
 
@@ -1598,7 +1598,7 @@ function initializeVimeoPlayer(vimeo) {
 
     function pauseVideo() {
         // Pause the video and update 
-        console.log('updating ui')
+        // console.log('updating ui')
         video.pause();
         pauseUI()
     }
@@ -1638,7 +1638,7 @@ function initializeVimeoPlayer(vimeo) {
     }
 
     function handleVideoEnded() {
-        console.log('vid ended')
+        // console.log('vid ended')
         pauseUI();
         replayBtn.style.display = "";
     }

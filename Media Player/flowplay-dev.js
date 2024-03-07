@@ -183,7 +183,7 @@ function initializeVideoPlayer(video) {
             el.classList.add("hide");
         });
         video.addEventListener("loadedmetadata", function() {
-            console.log("video playing");
+            // console.log("video playing");
             playVideoUi();
         });
 
