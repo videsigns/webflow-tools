@@ -212,6 +212,7 @@ function initializeVideoPlayer(video) {
 
         if (video.muted) {
             handleVolumeVideo()
+            lastVol = 1
         }
     }
 
@@ -465,6 +466,9 @@ function initializeVideoPlayer(video) {
                 volumeSlider.value = lastVol;
                 video.volume = lastVol;
                 volumeBtn.style.opacity = 1;
+                if (video.muted) {
+                    video.muted = false;
+                }
             }
         }
     }
@@ -710,49 +714,21 @@ function initializeYoutubePlayer(youtube) {
     let speed = 1;
     let volume = 100;
     let posterClicked = false;
-
-    function defaultBehavior() {
-        // Hide certain elements and set initial volume
-        if (pauseIcon) {
-            pauseIcon.style.display = "none";
-        }
-        if (pauseBtn) {
-            pauseBtn.style.display = "none";
-        }
-        if (minimizeBtn) {
-            minimizeBtn.style.display = "none";
-        }
-        if (replayBtn) {
-            replayBtn.style.display = "none";
-        }
-        if (volumeSlider) {
-            lastVol = volumeSlider ? volumeSlider.value : 1;
-            video.setVolume(volumeSlider ? volumeSlider.value * 100 : 100);
-        }
-        updateVolumeIcon(1); // Update volume icon
-        if (loader) {
-            loader.style.display = "none";
-        }
-        showPause.forEach((el) => {
-            el.classList.add("show");
-            el.classList.remove("hide");
-        });
-        showPlay.forEach((el) => {
-            el.classList.remove("show");
-            el.classList.add("hide");
-        });
-    }
-
-    function formatTime(time) {
-        // Format time in MM:SS format
-        const minutes = Math.floor(time / 60)
-            .toString()
-            .padStart(2, "0");
-        const seconds = Math.floor(time % 60)
-            .toString()
-            .padStart(2, "0");
-        return `${minutes}:${seconds}`;
-    }
+    const muted = wrapper.querySelector("[f-data-video-muted]") ?
+        wrapper
+        .querySelector("[f-data-video-muted]")
+        .getAttribute("f-data-video-muted") !== "false" :
+        false;
+    const loop = wrapper.querySelector("[f-data-video-loop]") ?
+        wrapper
+        .querySelector("[f-data-video-loop]")
+        .getAttribute("f-data-video-loop") !== "false" :
+        false;
+    const autoplayElement = wrapper.querySelector("[f-data-video-autoplay]");
+    const autoplay = autoplayElement ?
+        autoplayElement.getAttribute("f-data-video-autoplay") !== "false" :
+        false;
+    console.log(muted, autoplay)
 
     function createPlayer() {
         // console.log(wrapper.offsetWidth, wrapper.offsetHeight);
@@ -761,7 +737,9 @@ function initializeYoutubePlayer(youtube) {
             height: videoHeight,
             videoId: videoID,
             playerVars: {
-                autoplay: 0,
+                autoplay: autoplay ? 1 : 0,
+                mute: muted ? 1 : 0,
+                loop: loop ? 1 : 0,
                 controls: videoControls,
                 disablekb: 1,
                 playsinline: 1,
@@ -786,6 +764,61 @@ function initializeYoutubePlayer(youtube) {
 
     // Initialize video player
     const video = createPlayer();
+
+    function defaultBehavior() {
+        // Hide certain elements and set initial volume
+        if (pauseIcon) {
+            pauseIcon.style.display = "none";
+        }
+        if (pauseBtn) {
+            pauseBtn.style.display = "none";
+        }
+        if (minimizeBtn) {
+            minimizeBtn.style.display = "none";
+        }
+        if (replayBtn) {
+            replayBtn.style.display = "none";
+        }
+        if (volumeSlider) {
+            lastVol = volumeSlider ? volumeSlider.value : 1;
+            console.log(volumeSlider ? volumeSlider.value * 100 : 100)
+                // video.setVolume(volumeSlider ? volumeSlider.value * 100 : 100);
+        }
+        updateVolumeIcon(1); // Update volume icon
+        if (loader) {
+            loader.style.display = "none";
+        }
+        showPause.forEach((el) => {
+            el.classList.add("show");
+            el.classList.remove("hide");
+        });
+        showPlay.forEach((el) => {
+            el.classList.remove("show");
+            el.classList.add("hide");
+        });
+
+        if (muted) {
+            if (volumeBtn) {
+                volumeBtn.style.opacity = 0.5;
+            }
+
+            if (volumeSlider) {
+                volumeSlider.value = 0
+            }
+            lastVol = 1
+        }
+    }
+
+    function formatTime(time) {
+        // Format time in MM:SS format
+        const minutes = Math.floor(time / 60)
+            .toString()
+            .padStart(2, "0");
+        const seconds = Math.floor(time % 60)
+            .toString()
+            .padStart(2, "0");
+        return `${minutes}:${seconds}`;
+    }
 
     function onPlayerReady(event) {
         defaultBehavior();
@@ -1024,7 +1057,6 @@ function initializeYoutubePlayer(youtube) {
             if (volume < 0.1) {
                 volumeBtn.style.opacity = 0.5;
             } else {
-                lastVol = volume;
                 volumeBtn.style.opacity = 1;
             }
         }
@@ -1039,8 +1071,8 @@ function initializeYoutubePlayer(youtube) {
     function handleVolumeVideo() {
         volume = video.getVolume();
         if (volumeSlider) {
-            if (volume > 0) {
-                lastVol = volume / 100;
+            if (volumeSlider.value > 0) {
+                lastVol = volumeSlider.value;
                 video.setVolume(0);
                 volumeSlider.value = 0;
                 volumeBtn.style.opacity = 1;
@@ -1048,6 +1080,7 @@ function initializeYoutubePlayer(youtube) {
                 video.setVolume(lastVol * 100);
                 volumeSlider.value = lastVol;
                 volumeBtn.style.opacity = 1;
+                video.unMute();
             }
             volumeSlider.dispatchEvent(rangeSlider);
         }
@@ -1279,18 +1312,14 @@ function initializeVimeoPlayer(vimeo) {
     const videoWidth = wrapper.offsetWidth;
     const videoHeight = wrapper.offsetHeight;
     const muted = wrapper.querySelector("[f-data-video-muted]") ?
-        Boolean(
-            wrapper
-            .querySelector("[f-data-video-muted]")
-            .getAttribute("f-data-video-muted")
-        ) :
+        wrapper
+        .querySelector("[f-data-video-muted]")
+        .getAttribute("f-data-video-muted") !== "false" :
         false;
     const loop = wrapper.querySelector("[f-data-video-loop]") ?
-        Boolean(
-            wrapper
-            .querySelector("[f-data-video-loop]")
-            .getAttribute("f-data-video-loop")
-        ) :
+        wrapper
+        .querySelector("[f-data-video-loop]")
+        .getAttribute("f-data-video-loop") !== "false" :
         false;
     const autoplayElement = wrapper.querySelector("[f-data-video-autoplay]");
     const autoplay = autoplayElement ?
@@ -1299,18 +1328,16 @@ function initializeVimeoPlayer(vimeo) {
     const autoPlayOnScroll = wrapper.querySelector(
             "[f-data-video-autoplay-scroll]"
         ) ?
-        Boolean(
-            wrapper
-            .querySelector("[f-data-video-autoplay-scroll]")
-            .getAttribute("f-data-video-autoplay-scroll")
-        ) :
+        wrapper
+        .querySelector("[f-data-video-autoplay-scroll]")
+        .getAttribute("f-data-video-autoplay-scroll") !== "false" :
         false;
     const videoControls = vimeo.getAttribute("f-data-video-controls");
     const forwardTime = 5; // Amount of time to forward (in seconds)
     const backwardTime = 5; // Amount of time to backward (in seconds)
     var videoDuration = 0;
     let isDragging = false;
-    let lastVol = 0;
+    let lastVol = 1;
     var videoDurationDefault = 0;
     var track = 0;
     var quality = "auto";
@@ -1399,8 +1426,10 @@ function initializeVimeoPlayer(vimeo) {
 
         if (muted && volumeBtn && volumeSlider) {
             // console.log('test')
-            volumeBtn.click();
             volumeSlider.value = 0;
+            volumeBtn.style.opacity = 0.5;
+            volumeSlider.value = 0;
+            lastVol = 1
         }
 
         if (loader) {
@@ -1777,19 +1806,16 @@ function initializeVimeoPlayer(vimeo) {
     }
 
     function handleVolumeVideo() {
-        video.getVolume().then((volume) => {
-            if (volume > 0) {
-                lastVol = volumeSlider.value
-                video.setVolume(0);
-                volumeSlider.value = 0;
-                volumeBtn.style.opacity = 0.5;
-            } else {
-                video.setVolume(lastVol);
-                volumeSlider.value = lastVol;
-                volumeBtn.style.opacity = 1;
-            }
-            volumeSlider.dispatchEvent(rangeSlider);
-        });
+        if (volumeSlider.value > 0) {
+            lastVol = volumeSlider.value
+            video.setVolume(0);
+            volumeSlider.value = 0;
+            volumeBtn.style.opacity = 0.5;
+        } else {
+            video.setVolume(lastVol);
+            volumeSlider.value = lastVol;
+            volumeBtn.style.opacity = 1;
+        }
     }
 
     function handleFullscreenClick() {
