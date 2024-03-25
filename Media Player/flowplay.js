@@ -1,6 +1,6 @@
-// 7 Mar 2024
+// 25 Mar 2024
 // Bug fixes
-// Removed console
+// Fixed issue with autoplay UI applied to non autoplay video
 
 const _0x38b1fb = _0x4f91;
 (function(_0x24fa2d, _0x3e3fca) {
